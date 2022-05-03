@@ -17,6 +17,8 @@ if 'name' in params:
 if 'mode' in params:
     mode = int(params["mode"])
 
+xbmc.log('THROMER enter main %s' % mode, level=xbmc.LOGNOTICE)
+
 if 'game_day' in params:
     game_day = urllib.unquote_plus(params["game_day"])
 
@@ -69,6 +71,7 @@ elif mode == 200:
             dialog = xbmcgui.Dialog()
             dialog.ok(LOCAL_STRING(30365),LOCAL_STRING(30366))
 
+        xbmc.log('THROMER sys.exit mode %s' % mode, level=xbmc.LOGNOTICE) 
         sys.exit()
 
 elif mode == 300:
@@ -89,6 +92,7 @@ elif mode == 900:
     playAllHighlights(stream_date)
 
 elif mode == 999:
+    xbmc.log('THROMER sys.exit mode %s' % mode, level=xbmc.LOGNOTICE)
     sys.exit()
 
 if mode == 100:
@@ -97,3 +101,6 @@ elif mode == 101:
     xbmcplugin.endOfDirectory(addon_handle, cacheToDisc=False, updateListing=True)
 else:
     xbmcplugin.endOfDirectory(addon_handle)
+
+xbmc.log('THROMER exit main %s' % mode, level=xbmc.LOGNOTICE)
+

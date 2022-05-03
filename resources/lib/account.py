@@ -57,7 +57,9 @@ class Account:
                        '&client_id=0oa3e1nutA1HLzAKG356') % (quote(self.username),
                                                              quote(self.password))
 
+            xbmc.log('THROMER requests.post %s' % url, level=xbmc.LOGNOTICE)                                                                             
             r = requests.post(url, headers=headers, data=payload, verify=self.verify)
+            xbmc.log('THROMER requests.posted %s' % url, level=xbmc.LOGNOTICE)                                                                             
             if r.ok:
                 login_token = r.json()['access_token']
                 self.addon.setSetting('login_token', login_token)
@@ -94,7 +96,9 @@ class Account:
                    'Authorization': 'Bearer ' + self.addon.getSetting('login_token')
                    }
 
+        xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                             
         r = requests.get(url, headers=headers, verify=self.verify)
+        xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                                                                             
 
         return r.text
 
@@ -109,7 +113,9 @@ class Account:
                 'Origin': 'https://www.mlb.com'
             }
 
+            xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                         
             r = requests.get(url, headers=headers, verify=self.verify)
+            xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                           
             e = re.search('production:{clientId:"([^"]+)",', r.text)
             if e:
                 xbmc.log('found okta_client_id')
@@ -154,7 +160,9 @@ class Account:
                 'warnBeforePasswordExpired': True
               }
             }
+            xbmc.log('THROMER requests.post %s' % url, level=xbmc.LOGNOTICE)                                                                             
             r = requests.post(url, headers=headers, json=data, verify=self.verify)
+            xbmc.log('THROMER requests.posted %s' % url, level=xbmc.LOGNOTICE)                                                                             
             xbmc.log(r.text)
             if 'sessionToken' in r.json():
                 xbmc.log('found session_token')
@@ -200,7 +208,9 @@ class Account:
                 'sessionToken': self.addon.getSetting('session_token'),
                 'scope': 'openid email'
             }
+            xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                         
             r = requests.get(url, headers=headers, params=data, verify=self.verify)
+            xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                           
             # check if the response indicates we need a new session token
             e = re.search("data.error = 'login_required'", r.text)
             if e:
@@ -247,7 +257,9 @@ class Account:
                   '&subject_token_type=urn:ietf:params:oauth:token-type:jwt&platform=android-tv' \
                   % self.media_entitlement()
 
+        xbmc.log('THROMER requests.post %s' % url, level=xbmc.LOGNOTICE)                                                                    
         r = requests.post(url, headers=headers, data=payload, verify=self.verify)
+        xbmc.log('THROMER requests.posted %s' % url, level=xbmc.LOGNOTICE)                                                                    
         access_token = r.json()['access_token']
         # refresh_token = r.json()['refresh_token']
 
@@ -266,7 +278,9 @@ class Account:
             'User-Agent': 'BAMSDK/v4.3.0 (mlbaseball-7993996e 8.1.0; v2.0/v4.3.0; android; tv)'
         }
 
+        xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                         
         r = requests.get(url, headers=headers, cookies=self.util.load_cookies(), verify=self.verify)
+        xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                           
         if not r.ok:
             dialog = xbmcgui.Dialog()
             msg = ""
@@ -300,7 +314,9 @@ class Account:
             'User-Agent': UA_PC
         }
 
+        xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                         
         r = requests.get(url, headers=headers, cookies=self.util.load_cookies(), verify=self.verify)
+        xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                           
         if not r.ok:
             dialog = xbmcgui.Dialog()
             msg = ""
@@ -346,7 +362,9 @@ class Account:
         stream_urls = []
         headers = {'User-Agent': UA_PC}
 
+        xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                           
         r = requests.get(stream_url, headers=headers, verify=False)
+        xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                           
         master = r.text
 
         line = re.compile("(.+?)\n").findall(master)
