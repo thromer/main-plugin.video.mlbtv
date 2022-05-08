@@ -12,7 +12,7 @@ def categories():
 
 
 def todays_games(game_day):
-    xbmc.log('THROMER enter todays_games', level=xbmc.LOGNOTICE)
+    xbmc.log('THROMER enter todays_games', level=xbmc.LOGINFO)
     if game_day is None:
         game_day = localToEastern()
 
@@ -42,9 +42,9 @@ def todays_games(game_day):
         'User-Agent': UA_ANDROID
     }
     xbmc.log(url)
-    xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGINFO)                                                                             
     r = requests.get(url,headers=headers, verify=VERIFY)
-    xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGINFO)                                                                             
     json_source = r.json()
 
     try:
@@ -55,7 +55,7 @@ def todays_games(game_day):
 
     next_day = display_day + timedelta(days=1)
     addDir('[B]%s >>[/B]' % LOCAL_STRING(30011), 101, NEXT_ICON, FANART, next_day.strftime("%Y-%m-%d"))
-    xbmc.log('THROMER exit todays_games', level=xbmc.LOGNOTICE)
+    xbmc.log('THROMER exit todays_games', level=xbmc.LOGINFO)
 
 
 def create_game_listitem(game, game_day):
@@ -214,9 +214,9 @@ def get_video_list(list_url=None):
         'Referer': 'https://www.mlb.com',
         'Content-Type': 'application/json'
     }
-    xbmc.log('THROMER requests.get %s' % list_url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.get %s' % list_url, level=xbmc.LOGINFO)                                                                             
     r = requests.get(list_url, headers=headers, verify=VERIFY)
-    xbmc.log('THROMER requests.got %s' % list_url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.got %s' % list_url, level=xbmc.LOGINFO)                                                                             
     json_source = r.json()
     return json_source
 
@@ -373,14 +373,14 @@ def create_big_inning_listitem(game_day):
 
 
 def stream_select(game_pk, spoiler='True', from_context_menu=False):
-    xbmc.log('THROMER enter stream_select', level=xbmc.LOGNOTICE)
+    xbmc.log('THROMER enter stream_select', level=xbmc.LOGINFO)
     url = API_URL + '/api/v1/game/' + game_pk + '/content'
     headers = {
         'User-Agent': UA_ANDROID
     }
-    xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGINFO)                                                                             
     r = requests.get(url, headers=headers, verify=VERIFY)
-    xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGINFO)                                                                             
 
     json_source = r.json()
 
@@ -521,7 +521,7 @@ def stream_select(game_pk, spoiler='True', from_context_menu=False):
                 elif p == -1:
                     sys.exit()
 
-    if skip_possible == True and ASK_TO_SKIP == 'true':
+    if skip_possible == True and ASK_TO_SKIP == 'true' and from_context_menu == False:
         skip_type = dialog.select(LOCAL_STRING(30403), [LOCAL_STRING(30404), LOCAL_STRING(30408), LOCAL_STRING(30405), LOCAL_STRING(30406)])
         if skip_type == -1:
             sys.exit()
@@ -533,9 +533,9 @@ def stream_select(game_pk, spoiler='True', from_context_menu=False):
         highlight_select_stream(json_source['highlights']['highlights']['items'], None, from_context_menu)
 
     else:
-        xbmc.log('THROMER exit stream_select', level=xbmc.LOGNOTICE) 
+        xbmc.log('THROMER exit stream_select', level=xbmc.LOGINFO) 
         sys.exit()
-    xbmc.log('THROMER exit stream_select', level=xbmc.LOGNOTICE)                              
+    xbmc.log('THROMER exit stream_select', level=xbmc.LOGINFO)                              
 
 
 # select a stream for a featured video
@@ -590,9 +590,9 @@ def featured_stream_select(featured_video, name):
             'Origin': 'https://www.mlb.com',
             'Referer': 'https://www.mlb.com'
         }
-        xbmc.log('THROMER requests.get %s' % video_url, level=xbmc.LOGNOTICE) 
+        xbmc.log('THROMER requests.get %s' % video_url, level=xbmc.LOGINFO) 
         r = requests.get(video_url, headers=headers, verify=VERIFY)
-        xbmc.log('THROMER requests.got %s' % video_url, level=xbmc.LOGNOTICE)                                                                               
+        xbmc.log('THROMER requests.got %s' % video_url, level=xbmc.LOGINFO)                                                                               
 
         text_source = r.text
         #xbmc.log(text_source)
@@ -729,7 +729,7 @@ def highlight_select_stream(json_source, catchup=None, from_context_menu=False):
 
 
 def play_stream(stream_url, headers, spoiler='True', start='1', stream_type='video', skip_type=0, content_id=None, game_pk=None, is_live=False, start_inning=0, start_inning_half='top'):
-    xbmc.log('THROMER enter play_stream', level=xbmc.LOGNOTICE)
+    xbmc.log('THROMER enter play_stream', level=xbmc.LOGINFO)
     listitem = stream_to_listitem(stream_url, headers, spoiler, start, stream_type)
     xbmcplugin.setResolvedUrl(handle=addon_handle, succeeded=True, listitem=listitem)
     if skip_type > 0 or start_inning > 0:
@@ -738,7 +738,7 @@ def play_stream(stream_url, headers, spoiler='True', start='1', stream_type='vid
 
 
 def get_highlights(items):
-    xbmc.log('THROMER enter get_highlights', level=xbmc.LOGNOTICE) 
+    xbmc.log('THROMER enter get_highlights', level=xbmc.LOGINFO) 
     xbmc.log(str(items))
     highlights = []
     for item in sorted(items, key=lambda x: x['date']):
@@ -768,9 +768,9 @@ def playAllHighlights(stream_date):
     headers = {
         'User-Agent': UA_ANDROID
     }
-    xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGNOTICE)                                                                   
+    xbmc.log('THROMER requests.get %s' % url, level=xbmc.LOGINFO)                                                                   
     r = requests.get(url, headers, verify=VERIFY)
-    xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGNOTICE)                                                                             
+    xbmc.log('THROMER requests.got %s' % url, level=xbmc.LOGINFO)                                                                             
     json_source = r.json()
 
     playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
