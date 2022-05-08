@@ -1,5 +1,6 @@
 from resources.lib.globals import *
 from .account import Account
+from .mlbmonitor import MLBMonitor
 
 
 def categories():
@@ -31,8 +32,9 @@ def todays_games(game_day):
         create_big_inning_listitem(game_day)
 
     #url = 'http://gdx.mlb.com/components/game/mlb/' + url_game_day + '/grid_ce.json'
-    url = 'https://statsapi.mlb.com/api/v1/schedule'
-    url += '?hydrate=broadcasts(all),game(content(all)),probablePitcher,linescore,team'
+    url = API_URL + '/api/v1/schedule'
+    # url += '?hydrate=broadcasts(all),game(content(all)),probablePitcher,linescore,team,flags'
+    url += '?hydrate=game(content(media(epg))),probablePitcher,linescore,team,flags'
     url += '&sportId=1,51'
     url += '&date=' + game_day
 
@@ -78,6 +80,10 @@ def create_game_listitem(game, game_day):
 
     title = away_team + ' at ' + home_team
     title = title
+
+    is_free = False
+    if 'content' in game and 'media' in game['content'] and 'freeGame' in game['content']['media']:
+        is_free = game['content']['media']['freeGame']
 
     fav_game = False
     if game['teams']['away']['team']['name'] in FAV_TEAM:
@@ -168,6 +174,13 @@ def create_game_listitem(game, game_day):
         name += ' at ' + home_team
         if 'linescore' in game: name += ' ' + colorString(str(game['linescore']['teams']['home']['runs']), SCORE_COLOR)
 
+        # check flags
+        if 'flags' in game:
+            if game['flags']['perfectGame'] == True:
+                name += ' ' + colorString('(Perfect Game)', CRITICAL)
+            elif game['flags']['noHitter'] == True:
+                name += ' ' + colorString('(No-Hitter)', CRITICAL)
+
     if game['doubleHeader'] != 'N':
         name += ' (Game ' + str(game['gameNumber']) + ')'
 
@@ -175,14 +188,8 @@ def create_game_listitem(game, game_day):
     if fav_game:
         name = '[B]' + name + '[/B]'
 
-    # Label free game of the day if applicable
-    try:
-        if game['content']['media']['freeGame']:
-            # and game_day >= localToEastern(): 
-            name = colorString(name, FREE)
-    except:
-        pass
-
+    if is_free:
+        name = colorString(name, FREE)
 
     # Get audio/video info
     audio_info, video_info = getAudioVideoInfo()
@@ -190,8 +197,8 @@ def create_game_listitem(game, game_day):
     info = {'plot': desc, 'tvshowtitle': 'MLB', 'title': title, 'originaltitle': title, 'aired': game_day, 'genre': LOCAL_STRING(700), 'mediatype': 'video'}
 
     # If set only show free games in the list
-    if ONLY_FREE_GAMES == 'true' and not game['content']['media']['freeGame']:
-        return 
+    if ONLY_FREE_GAMES == 'true' and not is_free:
+        return
     add_stream(name, title, game_pk, icon, fanart, info, video_info, audio_info, stream_date, spoiler)
 
 
@@ -330,7 +337,7 @@ def create_big_inning_listitem(game_day):
 
         if game_day in big_inning_schedule:
             xbmc.log(game_day + ' has a scheduled Big Inning broadcast')
-            display_title = LOCAL_STRING(30367)
+            display_title = LOCAL_STRING(30368)
 
             big_inning_start = parse(big_inning_schedule[game_day]['start'])
             big_inning_end = parse(big_inning_schedule[game_day]['end'])
@@ -343,7 +350,7 @@ def create_big_inning_listitem(game_day):
             elif now > big_inning_end:
                 game_time = colorString(game_time, FINAL)
             elif now >= big_inning_start and now <= big_inning_end:
-                display_title = BIG_INNING_LIVE_NAME
+                display_title = LOCAL_STRING(30367) + LOCAL_STRING(30368)
                 game_time = colorString(game_time, LIVE)
             name = game_time + ' ' + display_title
 
@@ -356,7 +363,7 @@ def create_big_inning_listitem(game_day):
             icon = 'https://img.mlbstatic.com/mlb-images/image/private/ar_16:9,g_auto,q_auto:good,w_372,c_fill,f_jpg/mlb/uwr8vepua4t1fe8uwyki'
             fanart = 'https://img.mlbstatic.com/mlb-images/image/private/g_auto,c_fill,ar_16:9,q_60,w_1920/e_gradient_fade:15,x_0.6,b_black/mlb/uwr8vepua4t1fe8uwyki'
             liz.setArt({'icon': icon, 'thumb': icon, 'fanart': fanart})
-            u=sys.argv[0]+"?mode="+str(301)+"&featured_video="+urllib.quote_plus(BIG_INNING_LIVE_NAME)+"&name="+urllib.quote_plus(BIG_INNING_LIVE_NAME)
+            u=sys.argv[0]+"?mode="+str(301)+"&featured_video="+urllib.quote_plus(LOCAL_STRING(30367) + LOCAL_STRING(30368))+"&name="+urllib.quote_plus(LOCAL_STRING(30367) + LOCAL_STRING(30368))
             xbmcplugin.addDirectoryItem(handle=addon_handle,url=u,listitem=liz,isFolder=False)
             xbmcplugin.setContent(addon_handle, 'episodes')
         else:
@@ -367,8 +374,8 @@ def create_big_inning_listitem(game_day):
 
 
 def stream_select(game_pk, spoiler='True'):
-    xbmc.log('THROMER enter stream_select', level=xbmc.LOGNOTICE)                              
-    url = 'https://statsapi.mlb.com/api/v1/game/' + game_pk + '/content'
+    xbmc.log('THROMER enter stream_select', level=xbmc.LOGNOTICE)
+    url = API_URL + '/api/v1/game/' + game_pk + '/content'
     headers = {
         'User-Agent': UA_ANDROID
     }
@@ -426,6 +433,11 @@ def stream_select(game_pk, spoiler='True'):
     stream_url = ''
     start = '1'
     stream_type = 'video'
+    skip_possible = False
+    skip_type = 0
+    is_live = False
+    start_inning = 0
+    start_inning_half = 'top'
 
     dialog = xbmcgui.Dialog()
     n = dialog.select(LOCAL_STRING(30390), stream_title)
@@ -439,31 +451,66 @@ def stream_select(game_pk, spoiler='True'):
         stream_url, headers, broadcast_start = account.get_stream(content_id[n-highlight_offset])
         if sys.argv[3] == 'resume:true':
             spoiler = "True"
+            if stream_type == 'video':
+                skip_possible = True
         elif epg[0]['mediaState'] == "MEDIA_ON" and CATCH_UP == 'true' and stream_type == 'video':
-            p = dialog.select(LOCAL_STRING(30396), [LOCAL_STRING(30304), LOCAL_STRING(30398), LOCAL_STRING(30399)])
+            is_live = True
+            start_options = [LOCAL_STRING(30397), LOCAL_STRING(30398), LOCAL_STRING(30399)]
+            # add inning start options
+            for x in range(1, 12):
+                start_options.append(LOCAL_STRING(30409) + ' ' + LOCAL_STRING(30407) + ' ' + str(x))
+                start_options.append(LOCAL_STRING(30410) + ' ' + LOCAL_STRING(30407) + ' ' + str(x))
+            p = dialog.select(LOCAL_STRING(30396), start_options)
             if p == 0:
                 listitem = stream_to_listitem(stream_url, headers)
                 highlight_select_stream(json_source['highlights']['highlights']['items'], listitem)
                 sys.exit()
-            elif p == 1:
+            elif p == 1 or p > 2:
                 spoiler = "False"
                 start = broadcast_start
+                skip_possible = True
+                if p > 2:
+                    p = p - 2
+                    start_inning = int(round(((p+0.5) / 2), 0))
+                    if (p % 2) == 0 and ((p+1) % 2) == 1:
+                        start_inning_half = 'bottom'
             elif p == 2:
                 spoiler = "True"
             elif p == -1:
                 sys.exit()
         # don't offer to start live radio streams from beginning
         elif epg[0]['mediaState'] == "MEDIA_ON" and CATCH_UP == 'true' and stream_type == 'audio':
-            p = dialog.select(LOCAL_STRING(30396), [LOCAL_STRING(30304), LOCAL_STRING(30399)])
+            p = dialog.select(LOCAL_STRING(30396), [LOCAL_STRING(30397), LOCAL_STRING(30399)])
             if p == 0:
                 listitem = stream_to_listitem(stream_url, headers, 'True', '1', 'audio')
                 highlight_select_stream(json_source['highlights']['highlights']['items'], listitem)
                 sys.exit()
             elif p == -1:
                 sys.exit()
+        elif stream_type == 'video':
+            skip_possible = True
+            # For archive games, offer to start at inning if catch up is enabled
+            if CATCH_UP == 'true':
+                start_options = [LOCAL_STRING(30398)]
+                # add inning start options
+                for x in range(1, 12):
+                    start_options.append(LOCAL_STRING(30409) + ' ' + LOCAL_STRING(30407) + ' ' + str(x))
+                    start_options.append(LOCAL_STRING(30410) + ' ' + LOCAL_STRING(30407) + ' ' + str(x))
+                p = dialog.select(LOCAL_STRING(30396), start_options)
+                if p > 0:
+                    start_inning = int(round(((p+0.5) / 2), 0))
+                    if (p % 2) == 0 and ((p+1) % 2) == 1:
+                        start_inning_half = 'bottom'
+                elif p == -1:
+                    sys.exit()
+
+    if skip_possible == True and ASK_TO_SKIP == 'true':
+        skip_type = dialog.select(LOCAL_STRING(30403), [LOCAL_STRING(30404), LOCAL_STRING(30408), LOCAL_STRING(30405), LOCAL_STRING(30406)])
+        if skip_type == -1:
+            sys.exit()
 
     if '.m3u8' in stream_url:
-        play_stream(stream_url, headers, spoiler, start, stream_type)
+        play_stream(stream_url, headers, spoiler, start, stream_type, skip_type, content_id[n-highlight_offset], game_pk, is_live, start_inning, start_inning_half)
 
     elif stream_title[n] == LOCAL_STRING(30391):
         highlight_select_stream(json_source['highlights']['highlights']['items'])
@@ -489,10 +536,9 @@ def featured_stream_select(featured_video, name):
         if 'items' in video_list:
             for item in video_list['items']:
                 #xbmc.log(str(item))
-                # use a fuzzy search to match live Big Inning title
-                # because it has contained extra whitespace at the end before
-                if featured_video in item['title']:
-                    xbmc.log('found fuzzy match')
+                # live Big Inning title should start with LIVE and contain Big Inning
+                if (featured_video == (LOCAL_STRING(30367) + LOCAL_STRING(30368)) and item['title'].startswith('LIVE') and 'Big Inning' in item['title']) or featured_video == item['title']:
+                    xbmc.log('found match')
                     video_url = None
                     if 'fields' in item:
                         if 'playbackScenarios' in item['fields']:
@@ -508,8 +554,8 @@ def featured_stream_select(featured_video, name):
 
     xbmc.log('video url : ' + video_url)
     video_stream_url = None
-    # if it's not a Big Inning stream (fuzzy name search) and it is HLS (M3U8) or MP4, we can simply stream the URL we already have
-    if BIG_INNING_LIVE_NAME not in name and (video_url.endswith('.m3u8') or video_url.endswith('.mp4')):
+    # if it's not a Big Inning stream and it is HLS (M3U8) or MP4, we can simply stream the URL we already have
+    if (not name.startswith('LIVE') or (name.startswith('LIVE') and 'Big Inning' not in name)) and (video_url.endswith('.m3u8') or video_url.endswith('.mp4')):
         video_stream_url = video_url
     # otherwise we need to authenticate and get the stream URL
     else:
@@ -551,7 +597,7 @@ def featured_stream_select(featured_video, name):
             video_stream_url = account.get_stream_quality(video_stream_url)
         # known issue warning: on Kodi 18 Leia WITHOUT inputstream adaptive, Big Inning starts at the beginning and can't seek
         # anyone with inputstream adaptive, or Kodi 19+, will not have this problem
-        if BIG_INNING_LIVE_NAME in name and KODI_VERSION < 19 and not xbmc.getCondVisibility('System.HasAddon(inputstream.adaptive)'):
+        if name.startswith('LIVE') and 'Big Inning' in name and KODI_VERSION < 19 and not xbmc.getCondVisibility('System.HasAddon(inputstream.adaptive)'):
             dialog = xbmcgui.Dialog()
             dialog.ok(LOCAL_STRING(30370), LOCAL_STRING(30369))
         play_stream(video_stream_url, headers)
@@ -601,10 +647,13 @@ def highlight_select_stream(json_source, catchup=None):
         sys.exit()
 
 
-def play_stream(stream_url, headers, spoiler='True', start='1', stream_type='video'):
-    xbmc.log('THROMER enter play_stream', level=xbmc.LOGNOTICE) 
+def play_stream(stream_url, headers, spoiler='True', start='1', stream_type='video', skip_type=0, content_id=None, game_pk=None, is_live=False, start_inning=0, start_inning_half='top'):
+    xbmc.log('THROMER enter play_stream', level=xbmc.LOGNOTICE)
     listitem = stream_to_listitem(stream_url, headers, spoiler, start, stream_type)
     xbmcplugin.setResolvedUrl(handle=addon_handle, succeeded=True, listitem=listitem)
+    if skip_type > 0 or start_inning > 0:
+        mlbmonitor = MLBMonitor()
+        mlbmonitor.skip_monitor(skip_type, content_id, game_pk, is_live, start_inning, start_inning_half)
 
 
 def get_highlights(items):
@@ -630,7 +679,7 @@ def playAllHighlights(stream_date):
     if n == -1:
         sys.exit()
 
-    url = 'https://statsapi.mlb.com/api/v1/schedule'
+    url = API_URL + '/api/v1/schedule'
     url += '?hydrate=game(content(highlights(highlights)))'
     url += '&sportId=1,51'
     url += '&date=' + stream_date
