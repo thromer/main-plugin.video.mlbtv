@@ -1,6 +1,6 @@
 # Kodi Media Center language file
 # Addon Name: MLB.TV
-# Addon id: plugin.video.mlbtv
+# Addon id: main-plugin.video.mlbtv
 # Addon Provider: eracknaphobia
 msgid ""
 msgstr ""
