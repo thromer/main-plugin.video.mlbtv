@@ -37,8 +37,15 @@ if 'spoiler' in params:
 if 'featured_video' in params:
     featured_video = urllib.unquote_plus(params["featured_video"])
 
+xbmc.log('THROMER mode [%s]' % mode, level=xbmc.LOGINFO)
 if mode is None:
+    # a = 0/0
+    xbmc.log('THROMER calling categories', level=xbmc.LOGINFO) 
     categories()
+
+#elif mode is not None:
+    # xbmc.log('THROMER mode [%s]', level=xbmc.LOGINFO)
+    # b = 0/0
 
 elif mode == 100:
     todays_games(None)
@@ -68,6 +75,10 @@ elif mode == 106:
 # play all highlights for game from context menu
 elif mode == 107:
     play_all_highlights_for_game(game_pk)
+
+# from context menu, use an extra parameter to force manual date+game selection
+elif mode == 108:
+    categories(True)
 
 elif mode == 200:
     # Goto Date

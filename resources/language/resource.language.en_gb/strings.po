@@ -124,6 +124,18 @@ msgctxt "#30307"
 msgid "Auto-select favorite/home video stream"
 msgstr ""
 
+msgctxt "#30310"
+msgid "Auto-select game"
+msgstr ""
+
+msgctxt "#30312"
+msgid "Select date and game manually"
+msgstr ""
+
+msgctxt "#30312"
+msgid "Favorite team's most recent game"
+msgstr ""
+
 msgctxt "#30300"
 msgid "In Market Streams"
 msgstr ""
@@ -334,4 +346,8 @@ msgstr ""
 
 msgctxt "#30411"
 msgid "Play All"
+msgstr ""
+
+msgctxt "#30412"
+msgid "Select day and game"
 msgstr ""

@@ -3,13 +3,16 @@ from .account import Account
 from .mlbmonitor import MLBMonitor
 
 
-def categories():
+def categories(from_context_menu=False):
+    xbmc.log('THROMER categories auto_select_game: %s, from_context_menu: %s' % (AUTO_SELECT_GAME, from_context_menu), level=xbmc.LOGINFO)
+    if AUTO_SELECT_GAME != '0' and not from_context_menu:
+        auto_select_game()
+        return
     addDir(LOCAL_STRING(30360), 100, ICON, FANART)
     addDir(LOCAL_STRING(30361), 105, ICON, FANART)
     addDir(LOCAL_STRING(30362), 200, ICON, FANART)
     # show Featured Videos in the main menu
     addDir(LOCAL_STRING(30363), 300, ICON, FANART)
-
 
 def todays_games(game_day):
     xbmc.log('THROMER enter todays_games', level=xbmc.LOGINFO)
@@ -370,6 +373,14 @@ def create_big_inning_listitem(game_day):
     except Exception as e:
         xbmc.log('big inning error : ' + str(e))
         pass
+
+
+def auto_select_game():
+    dialog = xbmcgui.Dialog()
+    # dialog.notification("ted please implement", "not implemented", ICON, 5000, False)
+    dialog.ok("ted please implement", "not implemented")
+    xbmcplugin.setResolvedUrl(addon_handle, False, xbmcgui.ListItem())
+    sys.exit()
 
 
 def stream_select(game_pk, spoiler='True', from_context_menu=False):

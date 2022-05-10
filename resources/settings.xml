@@ -27,6 +27,9 @@
     
     <setting id="team_names" type="select" label="30190" lvalues="30191|30192" default="0" />
     <setting id="time_format" type="select" label="30301" lvalues="30302|30301" default="0" />
+    <!-- <setting id="auto_select_game" type="select" label="30310" lvalues="30311|30312" default="0" /> actually i want enum-->
+    <!-- <setting id="auto_select_game" type="select" label="30310" lvalues="30191|30192" default="0" />  not really for testing -->
+    <setting id="auto_select_game" type="enum" label="30310" lvalues="30171|30172" default="0" />
     <setting id="auto_select_stream" type="bool" label="30307" default="false" />
     <setting id="catch_up" type="bool" label="30304" default="true" />
     <setting id="ask_to_skip" type="bool" label="30306" default="true" />
