@@ -76,7 +76,7 @@ elif mode == 106:
 elif mode == 107:
     play_all_highlights_for_game(game_pk)
 
-# from context menu, use an extra parameter to force manual date+game selection
+# force manual date+game selection
 elif mode == 108:
     categories(True)
 

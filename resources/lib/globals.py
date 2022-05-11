@@ -212,21 +212,28 @@ def add_stream(name, title, game_pk, icon=None, fanart=None, info=None, video_in
     if audio_info is not None:
         liz.addStreamInfo('audio', audio_info)
 
-    # add Choose Stream and Highlights as context menu items
-    liz.addContextMenuItems([(LOCAL_STRING(30390), 'PlayMedia(plugin://main-plugin.video.mlbtv/'+
-                              '?mode='+str(103)+
-                              '&name='+urllib.quote_plus(name)+
-                              '&game_pk='+urllib.quote_plus(str(game_pk))+
-                              '&stream_date='+urllib.quote_plus(str(stream_date))+
-                              '&spoiler='+urllib.quote_plus(str(spoiler))+')'), 
-                             (LOCAL_STRING(30391), 'Container.Update(plugin://plugin.video.mlbtv/'+
-                              '?mode='+str(106)+
-                              '&name='+urllib.quote_plus(name)+
-                              '&game_pk='+urllib.quote_plus(str(game_pk))+')')])
+    context_menu_items = []
+    if AUTO_SELECT_STREAM == 'true':
+        # add Choose Stream and Highlights as context menu items
+        context_menu_items.append(
+            (LOCAL_STRING(30390), 'PlayMedia(plugin://main-plugin.video.mlbtv/'+
+             '?mode='+str(103)+
+             '&name='+urllib.quote_plus(name)+
+             '&game_pk='+urllib.quote_plus(str(game_pk))+
+             '&stream_date='+urllib.quote_plus(str(stream_date))+
+             '&spoiler='+urllib.quote_plus(str(spoiler))+')'))
+        context_menu_items.append(
+            (LOCAL_STRING(30391), 'Container.Update(plugin://main-plugin.video.mlbtv/'+
+             '?mode='+str(106)+
+             '&name='+urllib.quote_plus(name)+
+             '&game_pk='+urllib.quote_plus(str(game_pk))+')'))
 
-    if auto_select_game != 0:
-        # add Choose day and game as context menu if auto-select game is enabled
-        liz.addContextMenuItems([(LOCAL_STRING(30412), 'PlayMedia(plugin://main-plugin.video.mlbtv/?mode='+str(108))])
+    if AUTO_SELECT_GAME != '0':
+        # add Choose day and game as context menu item
+        # TODO maybe this is silly, can user just navigate back?
+        context_menu_items.append((LOCAL_STRING(30412), 'Container.Update(plugin://main-plugin.video.mlbtv/?mode='+str(100)))  # I have no idea
+
+    liz.addContextMenuItems(context_menu_items)
 
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
     xbmcplugin.setContent(addon_handle, 'episodes')

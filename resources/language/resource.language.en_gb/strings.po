@@ -132,7 +132,7 @@ msgctxt "#30312"
 msgid "Select date and game manually"
 msgstr ""
 
-msgctxt "#30312"
+msgctxt "#30313"
 msgid "Favorite team's most recent game"
 msgstr ""
 
@@ -350,4 +350,12 @@ msgstr ""
 
 msgctxt "#30412"
 msgid "Select day and game"
+msgstr ""
+
+msgctxt "#40000"
+msgid "Mumble"
+msgstr ""
+
+msgctxt "#40001"
+msgid "Blah"
 msgstr ""
