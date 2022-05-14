@@ -427,6 +427,7 @@ def load_cookies():
 
 
 def stream_to_listitem(stream_url, headers, spoiler='True', start='1', stream_type='video'):
+    xbmc.log('THROMER stream_to_listitem headers=%s' % str(headers), level=xbmc.LOGINFO)
     # check if our stream is HLS
     if '.m3u8' in stream_url:
         # if not audio only, check if inputstream.adaptive is present and enabled, depending on Kodi version

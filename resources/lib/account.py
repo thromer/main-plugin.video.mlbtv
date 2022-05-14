@@ -356,11 +356,11 @@ class Account:
 
 
     def get_stream(self, content_id):
-        stream_url, headers, _, broadcast_start = self.get_stream_with_more_headers_as_map(content_id)
+        stream_url, headers_map, _, broadcast_start = self.get_stream_with_more_headers_as_map(content_id)
         entries = []
         for k, v in headers_map.items():
-            entries.append('%s=%s', k, v)
-        return stream_url, '&'.join(entries), headers, broadcast_start
+            entries.append('%s=%s' % (k, v))
+        return stream_url, '&'.join(entries), headers_map, broadcast_start
         
 
     def get_stream_quality(self, stream_url):

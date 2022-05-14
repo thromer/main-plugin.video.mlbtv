@@ -44,7 +44,7 @@ def old_auto_select_game():
     # This does play the game, but there is no escaping it ever ...
     # 'escape' goes back to the beginning
     # Control 55 in window 10025 has been asked to focus, but it can't
-    xbmc.log('old_auto_select_game', level=xbmc.LOGINFO)
+    xbmc.log('THROMER old_auto_select_game handle %s argv1 %s' % (addon_handle, sys.argv[1]), level=xbmc.LOGINFO)
     game_day = localToEastern()
     # team_id = getFavTeamId() TODO!
     team_id = '137'
@@ -102,8 +102,8 @@ def old_stream_select(game_pk):
     xbmc.log('THROMER Account()', level=xbmc.LOGINFO)
     account = Account()
     xbmc.log('THROMER get_stream...', level=xbmc.LOGINFO)
-    stream_url, _, headers, _ = account.get_stream_with_more_headers_as_map(content_id)
-    Authorization = headers['Authorization']
+    stream_url, headers, more_headers, _ = account.get_stream_with_more_headers_as_map(content_id)
+    Authorization = more_headers['Authorization']
 
     if not '.m3u8' in stream_url:
         auto_select_game_fallback("Unable to play stream, url is %s" %  stream_url)
@@ -111,14 +111,42 @@ def old_stream_select(game_pk):
 
     xbmc.log('THROMER stream_url %s ' % stream_url)
     xbmc.log('THROMER headers %s ' % str(headers))
+    xbmc.log('THROMER more_headers %s ' % str(more_headers))
     extended_url = '%s|Authorization=%s' % (stream_url, Authorization)
     xbmc.log('THROMER extended_url %s ' % str(extended_url))
-    xbmc.log('THROMER play', level=xbmc.LOGINFO)                                                                 
+    xbmc.log('THROMER play', level=xbmc.LOGINFO)                                    play_stream(extended_url, headers)
 
-    list_item = xbmcgui.ListItem(label='baseball game')
-    list_item.setProperty('IsPlayable', 'true')
-    list_item.setPath(extended_url)
+    return
+    
+    #  This has nothing to do with anything
+    # list_item = xbmcgui.ListItem(label='baseball game')
+    # list_item.setProperty('IsPlayable', 'true')
+    # list_item.setPath(extended_url)
+
+
+    # liz=xbmcgui.ListItem('haha name')
+    # liz.setArt({'icon': ICON, 'thumb': ICON, 'fanart': FANART})
+    # liz.setProperty("IsPlayable", "true")
+    # liz.setInfo( type="Video", infoLabels={ "Title": 'haha title' } )
+    # # if info is not None:
+    # #     liz.setInfo( type="Video", infoLabels=info)
+    # # if video_info is not None:
+    # #     liz.addStreamInfo('video', video_info)
+    # # if audio_info is not None:
+    # #     liz.addStreamInfo('audio', audio_info)
+
+
+    # xbmc.log('THROMER calling addDirectoryItem ...', level=xbmc.LOGINFO)
+    # ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),listitem=liz,url=extended_url,isFolder=False)
+    # xbmc.log('THROMER ok=%s' % ok, level=xbmc.LOGINFO)
+    # xbmcplugin.setContent(addon_handle, 'episodes')
+
+    # return ok
+
+
+    # infinite loop below
     xbmc.log('THROMER calling play ...', level=xbmc.LOGINFO)
+    # This seems like the wrong way to do it ...
     xbmc.Player().play(extended_url, list_item)
     xbmc.log('THROMER HTH', level=xbmc.LOGINFO)
 
