@@ -60,13 +60,11 @@ def auto_select_game_fallback(msg):
     
 def auto_select_game():
     xbmc.log('auto_select_game', level=xbmc.LOGINFO)
-    dialog = xbmcgui.Dialog()
-    dialog.notification("ted please implement", "not implemented", ICON, 5000, False)
+    # dialog = xbmcgui.Dialog()
+    # dialog.notification("ted please implement", "not implemented", ICON, 5000, False)
     old_auto_select_game()
 
-    
-    # dialog.ok("ted please implement", "not implemented")
-    # actually it would be nice do the little alert thing and send back to mode=108 
+    # what was this?
     # xbmcplugin.setResolvedUrl(addon_handle, False, xbmcgui.ListItem())
     #sys.exit()
     # TODO if there is no favorite team, fall back on selecting date & game
@@ -77,13 +75,9 @@ def auto_select_game():
 
 
 def old_auto_select_game():
-    # This does play the game, but there is no escaping it ever ...
-    # 'escape' goes back to the beginning
-    # Control 55 in window 10025 has been asked to focus, but it can't
     xbmc.log('old_auto_select_game', level=xbmc.LOGINFO)
     game_day = localToEastern()
-    # team_id = getFavTeamId() TODO!
-    team_id = '137'
+    team_id = getFavTeamId()
     url = 'https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=%s&teamId=%s' % (game_day, team_id)
     xbmc.log('THROMER %s' % url, level=xbmc.LOGINFO)
     headers = {
@@ -101,8 +95,8 @@ def old_auto_select_game():
 
     game_pk = str(games[0]['gamePk'])
     xbmc.log('THROMER found %s' % game_pk, level=xbmc.LOGINFO)
-    # stream_select(game_pk)
-    old_stream_select(game_pk)  # TODO
+    stream_select(game_pk)
+    # old_stream_select(game_pk)  # TODO  use as needed
 
 
 def old_stream_select(game_pk):
