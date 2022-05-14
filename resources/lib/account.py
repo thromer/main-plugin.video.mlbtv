@@ -297,12 +297,12 @@ class Account:
             broadcast_start = r.json()['data']['Airings'][0]['milestones'][0]['milestoneTime'][offset_index]['start']
             if isinstance(broadcast_start, int):
                 broadcast_start = str(broadcast_start)
-        except:
-            pass
+        except Exception as e:
+            xbmc.log('error : ' + str(e), level=xbmc.LOGWARNING)
         
         return auth, r.json()['data']['Airings'][0]['playbackUrls'][0]['href'], broadcast_start
 
-    def get_stream(self, content_id):
+    def get_stream_with_more_headers_as_map(self, content_id):
         auth, url, broadcast_start = self.get_playback_url(content_id)
 
         url = url.replace('{scenario}','browser~csai')
@@ -332,14 +332,17 @@ class Account:
 
         if QUALITY == 'Always Ask':
             stream_url = self.get_stream_quality(stream_url)
-        headers = 'User-Agent=' + UA_PC
-        headers += '&Authorization=' + auth
-        headers += '&Cookie='
+        cookie_val = ''
         cookies = requests.utils.dict_from_cookiejar(self.util.load_cookies())
         if sys.version_info[0] <= 2:
-            cookies = cookies.iteritems()
-        for key, value in cookies:
-            headers += key + '=' + value + '; '
+            cookies = cookies.items()
+        for key, value in cookies.items():
+            cookie_val += key + '=' + value + '; '
+        more_headers = {
+            'User-Agent' : UA_PC,
+            'Authorization' : auth,
+            'Cookie' : cookie_val
+        }
             
         #CDN
         akc_url = 'hlslive-aksc'
@@ -349,7 +352,16 @@ class Account:
         elif CDN == 'Level 3' and l3c_url not in stream_url:
             stream_url = stream_url.replace(akc_url, l3c_url)
         
-        return stream_url, headers, broadcast_start
+        return stream_url, headers, more_headers, broadcast_start
+
+
+    def get_stream(self, content_id):
+        stream_url, headers, _, broadcast_start = self.get_stream_with_more_headers_as_map(content_id)
+        entries = []
+        for k, v in headers_map.items():
+            entries.append('%s=%s', k, v)
+        return stream_url, '&'.join(entries), headers, broadcast_start
+        
 
     def get_stream_quality(self, stream_url):
         #Check if inputstream adaptive is on, if so warn user and return master m3u8

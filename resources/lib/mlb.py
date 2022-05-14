@@ -40,17 +40,134 @@ from .account import Account
 from .mlbmonitor import MLBMonitor
 
 
-def categories():
+def categories(force_date_game_selection=False):
+    xbmc.log('THROMER categories auto_select_game: %s, force_date_game_selection: %s' % (AUTO_SELECT_GAME, force_date_game_selection), level=xbmc.LOGINFO)
+    if AUTO_SELECT_GAME != '0' and not force_date_game_selection:
+        auto_select_game()
+        return
     addDir(LOCAL_STRING(30360), 100, ICON, FANART)  # Today's games
     addDir(LOCAL_STRING(30361), 105, ICON, FANART)  # Yesterday's games
     addDir(LOCAL_STRING(30362), 200, ICON, FANART)  # Goto Date
     addDir(LOCAL_STRING(30363), 300, ICON, FANART)  # Featured Videos
 
 
-def todays_games(game_day):
+def auto_select_game_fallback(msg):
+    xbmc.log('auto_select_game_fallback %s' % msg, level=xbmc.LOGINFO)
+    dialog = xbmcgui.Dialog()
+    dialog.notification('Auto-select game failed', msg, ICON, 5000, False)
+    categories(True)
+
+    
+def auto_select_game():
+    xbmc.log('auto_select_game', level=xbmc.LOGINFO)
+    dialog = xbmcgui.Dialog()
+    dialog.notification("ted please implement", "not implemented", ICON, 5000, False)
+    old_auto_select_game()
+
+    
+    # dialog.ok("ted please implement", "not implemented")
+    # actually it would be nice do the little alert thing and send back to mode=108 
+    # xbmcplugin.setResolvedUrl(addon_handle, False, xbmcgui.ListItem())
+    #sys.exit()
+    # TODO if there is no favorite team, fall back on selecting date & game
+    # (or maybe selecting just game, for day with most recent games of any
+    # flavor)
+    # In case we can't find anything fall back on selecting date & game
+    # categories(True)
+
+
+def old_auto_select_game():
+    # This does play the game, but there is no escaping it ever ...
+    # 'escape' goes back to the beginning
+    # Control 55 in window 10025 has been asked to focus, but it can't
+    xbmc.log('old_auto_select_game', level=xbmc.LOGINFO)
+    game_day = localToEastern()
+    # team_id = getFavTeamId() TODO!
+    team_id = '137'
+    url = 'https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=%s&teamId=%s' % (game_day, team_id)
+    xbmc.log('THROMER %s' % url, level=xbmc.LOGINFO)
+    headers = {
+        'User-Agent': UA_ANDROID
+    }
+    r = requests.get(url,headers=headers, verify=VERIFY)
+    json_source = r.json()
+    xbmc.log('THROMER: %s' % str(json_source))
+    xbmc.log('THROMER got resp' ,level=xbmc.LOGINFO)
+    if len(json_source['dates']) == 1:
+        games = json_source['dates'][0]['games']
+        if len(games) != 1:
+            auto_select_game_fallback("No games found for today, or possibly a double header.")
+            return
+
+    game_pk = str(games[0]['gamePk'])
+    xbmc.log('THROMER found %s' % game_pk, level=xbmc.LOGINFO)
+    # stream_select(game_pk)
+    old_stream_select(game_pk)  # TODO
+
+
+def old_stream_select(game_pk):
+    url = 'https://statsapi.mlb.com/api/v1/game/' + game_pk + '/content'
+    headers = {
+        'User-Agent': UA_ANDROID
+    }
+    xbmc.log('THROMER %s' % url, level=xbmc.LOGINFO)
+    r = requests.get(url, headers=headers, verify=VERIFY)
+    json_source = r.json()
+    xbmc.log('THROMER: %s' % str(json_source))
+    xbmc.log('THROMER got resp', level=xbmc.LOGINFO)
+
+    epg = json_source['media']['epg'][0]['items']
+    content_id = None
+    content_map = {}
+    for item in epg:
+        xbmc.log(str(item))
+        media_feed_type = item['mediaFeedType']
+        if item['mediaState'] != 'MEDIA_OFF' and (media_feed_type == 'HOME' or media_feed_type == 'AWAY'):
+            content_map[item['callLetters']] = item['contentId']
+
+    for k in ['NBCSBA', 'ESPN', 'FOX', 'FS1', 'TBS', 'ESPN2', 'MLBN', 'CBS', 'TNT']:
+        if k in content_map:
+            content_id = content_map[k]
+            break
+
+    if not content_id:
+        auto_select_game_fallback("No broadcast not found")
+        return
+
+    stream_url = ''
+    xbmc.log('THROMER Account()', level=xbmc.LOGINFO)
+    account = Account()
+    xbmc.log('THROMER get_stream...', level=xbmc.LOGINFO)
+    stream_url, _, headers, _ = account.get_stream_with_more_headers_as_map(content_id)
+    Authorization = headers['Authorization']
+
+    if not '.m3u8' in stream_url:
+        auto_select_game_fallback("Unable to play stream, url is %s" %  stream_url)
+        return
+
+    xbmc.log('THROMER stream_url %s ' % stream_url)
+    xbmc.log('THROMER headers %s ' % str(headers))
+    extended_url = '%s|Authorization=%s' % (stream_url, Authorization)
+    xbmc.log('THROMER extended_url %s ' % str(extended_url))
+    xbmc.log('THROMER play', level=xbmc.LOGINFO)                                                                 
+
+    list_item = xbmcgui.ListItem(label='baseball game')
+    list_item.setProperty('IsPlayable', 'true')
+    list_item.setPath(extended_url)
+    xbmc.log('THROMER calling play ...', level=xbmc.LOGINFO)
+    xbmc.Player().play(extended_url, list_item)
+    xbmc.log('THROMER HTH', level=xbmc.LOGINFO)
+
+
+def todays_games(game_day, force_date_game_selection=False):
     xbmc.log('THROMER enter todays_games', level=xbmc.LOGINFO)
     if game_day is None:
         game_day = localToEastern()
+    else:
+        force_date_game_selection = True
+    if AUTO_SELECT_GAME != '0' and not force_date_game_selection:
+        auto_select_game()
+        return
 
     settings.setSetting(id='stream_date', value=game_day)
 
@@ -86,8 +203,8 @@ def todays_games(game_day):
     try:
         for game in json_source['dates'][0]['games']:
             create_game_listitem(game, game_day)
-    except:
-        pass
+    except Exception as e:
+        xbmc.log('error : ' + str(e), level=xbmc.LOGWARNING)
 
     next_day = display_day + timedelta(days=1)
     addDir('[B]%s >>[/B]' % LOCAL_STRING(30011), 101, NEXT_ICON, FANART, next_day.strftime("%Y-%m-%d"))
@@ -116,6 +233,7 @@ def create_game_listitem(game, game_day):
 
     title = away_team + ' at ' + home_team
     title = title
+    xbmc.log('THROMER create_game_listitem considering %s' % title, level=xbmc.LOGINFO)
 
     is_free = False
     if 'content' in game and 'media' in game['content'] and 'freeGame' in game['content']['media']:
@@ -234,7 +352,9 @@ def create_game_listitem(game, game_day):
 
     # If set only show free games in the list
     if ONLY_FREE_GAMES == 'true' and not is_free:
+        xbmc.log('THROMER create_game_listitem skipping %s' % title, level=xbmc.LOGINFO)
         return
+    xbmc.log('THROMER create_game_listitem adding %s' % title, level=xbmc.LOGINFO)
     add_stream(name, title, game_pk, icon, fanart, info, video_info, audio_info, stream_date, spoiler)
 
 
@@ -405,11 +525,10 @@ def create_big_inning_listitem(game_day):
             xbmc.log(game_day + ' does not have a scheduled Big Inning broadcast')
     except Exception as e:
         xbmc.log('big inning error : ' + str(e))
-        pass
 
 
 def stream_select(game_pk, spoiler='True', from_context_menu=False):
-    xbmc.log('THROMER enter stream_select', level=xbmc.LOGINFO)
+    xbmc.log('THROMER enter stream_select addon_handle=%s' % addon_handle, level=xbmc.LOGINFO)
     url = API_URL + '/api/v1/game/' + game_pk + '/content'
     headers = {
         'User-Agent': UA_ANDROID
@@ -765,7 +884,7 @@ def highlight_select_stream(json_source, catchup=None, from_context_menu=False):
 
 
 def play_stream(stream_url, headers, spoiler='True', start='1', stream_type='video', skip_type=0, content_id=None, game_pk=None, is_live=False, start_inning=0, start_inning_half='top'):
-    xbmc.log('THROMER enter play_stream', level=xbmc.LOGINFO)
+    xbmc.log('THROMER enter play_stream addon_handle=%s stream_url=%s' % (addon_handle, stream_url), level=xbmc.LOGINFO)
     listitem = stream_to_listitem(stream_url, headers, spoiler, start, stream_type)
     xbmcplugin.setResolvedUrl(handle=addon_handle, succeeded=True, listitem=listitem)
     if skip_type > 0 or start_inning > 0:
@@ -830,10 +949,10 @@ def playAllHighlights(stream_date):
                             listitem.setInfo(type="Video", infoLabels={"Title": title})
                             xbmc.log('adding recap to playlist : ' + title)
                             playlist.add(clip_url, listitem)
-                    except:
-                        pass
-        except:
-            pass
+                    except Exception as e:
+                        xbmc.log('error : ' + str(e), level=xbmc.LOGWARNING)
+        except Exception as e:
+            xbmc.log('error : ' + str(e), level=xbmc.LOGWARNING)
 
     xbmc.Player().play(playlist)
 

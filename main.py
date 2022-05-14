@@ -41,7 +41,9 @@ is_directory = True
 cache_directory = True  # default
 update_listing = True  # default
 
+xbmc.log('THROMER mode [%s]' % mode, level=xbmc.LOGINFO)
 if mode is None:
+    xbmc.log('THROMER calling categories', level=xbmc.LOGINFO) 
     categories()
 
 elif mode == 100:
@@ -81,6 +83,10 @@ elif mode == 107:
     play_all_highlights_for_game(game_pk)
     is_directory = False
 
+# force manual date+game selection
+elif mode == 108:
+    categories(True)
+
 elif mode == 200:
     # Goto Date
     search_txt = ''
@@ -112,7 +118,7 @@ elif mode == 400:
     account.logout()
     dialog = xbmcgui.Dialog()
     dialog.notification(LOCAL_STRING(30260), LOCAL_STRING(30261), ICON, 5000, False)
-    is_directory = False  # TODO ???
+    is_directory = False
 
 elif mode == 900:
     # play all recaps or condensed games for selected date

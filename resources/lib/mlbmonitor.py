@@ -14,7 +14,7 @@ class MLBMonitor(xbmc.Monitor):
     # override the onSettingsChanged method to detect if a new MLB monitor has started (so we can close this one)
     def onSettingsChanged(self):
         xbmc.log("MLB Monitor detected settings changed")
-        settings = xbmcaddon.Addon(id='plugin.video.mlbtv')
+        settings = xbmcaddon.Addon(id='main-plugin.video.mlbtv')
         new_mlb_monitor_started = str(settings.getSetting(id="mlb_monitor_started"))
         if self.mlb_monitor_started != new_mlb_monitor_started:
             xbmc.log("MLB Monitor from " + self.mlb_monitor_started + " closing due to another monitor starting on " + new_mlb_monitor_started)
