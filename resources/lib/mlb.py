@@ -1,14 +1,50 @@
+# who calls addDirectoryItem ?
+# YES: 100, 101, 105, 106, 200, 300
+# NO: 103, 104, 107, 301
+
+# featured_videos (though it might call it 0 times)
+#  mode 300
+
+# create_big_inning_listitem
+#  todays_games
+
+# list_highlights
+#   mode 106
+
+# globals.add_stream
+#  create_game_listitem
+#   todays_games
+
+# globals.addLink
+#  UNUSED
+
+# globals.addDir
+#  todays_games
+#  categories 
+
+# globals.addPlaylist
+#   todays_games
+#    mode 100, 101, 105, 200
+
+# NOT stream_select
+#   mode 103, 104
+
+# NOT featured_stream_select
+#   mode 301
+
+# NOT play_all_highlights_for_game
+#   mode 107
+
 from resources.lib.globals import *
 from .account import Account
 from .mlbmonitor import MLBMonitor
 
 
 def categories():
-    addDir(LOCAL_STRING(30360), 100, ICON, FANART)
-    addDir(LOCAL_STRING(30361), 105, ICON, FANART)
-    addDir(LOCAL_STRING(30362), 200, ICON, FANART)
-    # show Featured Videos in the main menu
-    addDir(LOCAL_STRING(30363), 300, ICON, FANART)
+    addDir(LOCAL_STRING(30360), 100, ICON, FANART)  # Today's games
+    addDir(LOCAL_STRING(30361), 105, ICON, FANART)  # Yesterday's games
+    addDir(LOCAL_STRING(30362), 200, ICON, FANART)  # Goto Date
+    addDir(LOCAL_STRING(30363), 300, ICON, FANART)  # Featured Videos
 
 
 def todays_games(game_day):
