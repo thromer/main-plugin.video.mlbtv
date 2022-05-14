@@ -231,6 +231,8 @@ def add_stream(name, title, game_pk, icon=None, fanart=None, info=None, video_in
     if AUTO_SELECT_GAME != '0':
         # add Choose day and game as context menu item
         # TODO maybe this is silly, can user just navigate back?
+        # TODO and/or they can stop the game and we can do the right thing ...
+        # I hope.
         context_menu_items.append((LOCAL_STRING(30412), 'Container.Update(plugin://main-plugin.video.mlbtv/?mode='+str(100)))  # I have no idea
 
     liz.addContextMenuItems(context_menu_items)

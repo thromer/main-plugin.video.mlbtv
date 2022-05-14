@@ -338,7 +338,7 @@ class Account:
             cookies = cookies.items()
         for key, value in cookies.items():
             cookie_val += key + '=' + value + '; '
-        more_headers = {
+        headers = {
             'User-Agent' : UA_PC,
             'Authorization' : auth,
             'Cookie' : cookie_val
@@ -352,7 +352,7 @@ class Account:
         elif CDN == 'Level 3' and l3c_url not in stream_url:
             stream_url = stream_url.replace(akc_url, l3c_url)
         
-        return stream_url, headers, more_headers, broadcast_start
+        return stream_url, headers, broadcast_start
 
 
     def get_stream(self, content_id):
@@ -361,7 +361,7 @@ class Account:
         for k, v in headers_map.items():
             entries.append('%s=%s' % (k, v))
         return stream_url, '&'.join(entries), headers_map, broadcast_start
-        
+
 
     def get_stream_quality(self, stream_url):
         #Check if inputstream adaptive is on, if so warn user and return master m3u8

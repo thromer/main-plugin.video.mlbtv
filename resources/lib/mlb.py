@@ -1,3 +1,40 @@
+# who calls addDirectoryItem ?
+# YES: 100, 101, 105, 106, 200, 300
+# NO: 103, 104, 107, 301
+
+# featured_videos (though it might call it 0 times)
+#  mode 300
+
+# create_big_inning_listitem
+#  todays_games
+
+# list_highlights
+#   mode 106
+
+# globals.add_stream
+#  create_game_listitem
+#   todays_games
+
+# globals.addLink
+#  UNUSED
+
+# globals.addDir
+#  todays_games
+#  categories 
+
+# globals.addPlaylist
+#   todays_games
+#    mode 100, 101, 105, 200
+
+# NOT stream_select
+#   mode 103, 104
+
+# NOT featured_stream_select
+#   mode 301
+
+# NOT play_all_highlights_for_game
+#   mode 107
+
 from resources.lib.globals import *
 from .account import Account
 from .mlbmonitor import MLBMonitor
@@ -8,11 +45,10 @@ def categories(force_date_game_selection=False):
     if AUTO_SELECT_GAME != '0' and not force_date_game_selection:
         auto_select_game()
         return
-    addDir(LOCAL_STRING(30360), 100, ICON, FANART)
-    addDir(LOCAL_STRING(30361), 105, ICON, FANART)
-    addDir(LOCAL_STRING(30362), 200, ICON, FANART)
-    # show Featured Videos in the main menu
-    addDir(LOCAL_STRING(30363), 300, ICON, FANART)
+    addDir(LOCAL_STRING(30360), 100, ICON, FANART)  # Today's games
+    addDir(LOCAL_STRING(30361), 105, ICON, FANART)  # Yesterday's games
+    addDir(LOCAL_STRING(30362), 200, ICON, FANART)  # Goto Date
+    addDir(LOCAL_STRING(30363), 300, ICON, FANART)  # Featured Videos
 
 
 def auto_select_game_fallback(msg):
@@ -24,13 +60,11 @@ def auto_select_game_fallback(msg):
     
 def auto_select_game():
     xbmc.log('auto_select_game', level=xbmc.LOGINFO)
-    dialog = xbmcgui.Dialog()
-    dialog.notification("ted please implement", "not implemented", ICON, 5000, False)
+    # dialog = xbmcgui.Dialog()
+    # dialog.notification("ted please implement", "not implemented", ICON, 5000, False)
     old_auto_select_game()
 
-    
-    # dialog.ok("ted please implement", "not implemented")
-    # actually it would be nice do the little alert thing and send back to mode=108 
+    # what was this?
     # xbmcplugin.setResolvedUrl(addon_handle, False, xbmcgui.ListItem())
     #sys.exit()
     # TODO if there is no favorite team, fall back on selecting date & game
@@ -41,13 +75,9 @@ def auto_select_game():
 
 
 def old_auto_select_game():
-    # This does play the game, but there is no escaping it ever ...
-    # 'escape' goes back to the beginning
-    # Control 55 in window 10025 has been asked to focus, but it can't
     xbmc.log('THROMER old_auto_select_game handle %s argv1 %s' % (addon_handle, sys.argv[1]), level=xbmc.LOGINFO)
     game_day = localToEastern()
-    # team_id = getFavTeamId() TODO!
-    team_id = '137'
+    team_id = getFavTeamId()
     url = 'https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=%s&teamId=%s' % (game_day, team_id)
     xbmc.log('THROMER %s' % url, level=xbmc.LOGINFO)
     headers = {
@@ -65,8 +95,8 @@ def old_auto_select_game():
 
     game_pk = str(games[0]['gamePk'])
     xbmc.log('THROMER found %s' % game_pk, level=xbmc.LOGINFO)
-    # stream_select(game_pk)
-    old_stream_select(game_pk)  # TODO
+    stream_select(game_pk)
+    # old_stream_select(game_pk)  # TODO  use as needed
 
 
 def old_stream_select(game_pk):
