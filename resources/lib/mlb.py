@@ -144,37 +144,11 @@ def old_stream_select(game_pk):
     xbmc.log('THROMER more_headers %s ' % str(more_headers))
     extended_url = '%s|Authorization=%s' % (stream_url, Authorization)
     xbmc.log('THROMER extended_url %s ' % str(extended_url))
-    xbmc.log('THROMER play', level=xbmc.LOGINFO)                                    play_stream(extended_url, headers)
+    xbmc.log('THROMER play', level=xbmc.LOGINFO)                                                                 
 
-    return
-    
-    #  This has nothing to do with anything
-    # list_item = xbmcgui.ListItem(label='baseball game')
-    # list_item.setProperty('IsPlayable', 'true')
-    # list_item.setPath(extended_url)
-
-
-    # liz=xbmcgui.ListItem('haha name')
-    # liz.setArt({'icon': ICON, 'thumb': ICON, 'fanart': FANART})
-    # liz.setProperty("IsPlayable", "true")
-    # liz.setInfo( type="Video", infoLabels={ "Title": 'haha title' } )
-    # # if info is not None:
-    # #     liz.setInfo( type="Video", infoLabels=info)
-    # # if video_info is not None:
-    # #     liz.addStreamInfo('video', video_info)
-    # # if audio_info is not None:
-    # #     liz.addStreamInfo('audio', audio_info)
-
-
-    # xbmc.log('THROMER calling addDirectoryItem ...', level=xbmc.LOGINFO)
-    # ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),listitem=liz,url=extended_url,isFolder=False)
-    # xbmc.log('THROMER ok=%s' % ok, level=xbmc.LOGINFO)
-    # xbmcplugin.setContent(addon_handle, 'episodes')
-
-    # return ok
-
-
-    # infinite loop below
+    list_item = xbmcgui.ListItem(label='baseball game')
+    list_item.setProperty('IsPlayable', 'true')
+    list_item.setPath(extended_url)
     xbmc.log('THROMER calling play ...', level=xbmc.LOGINFO)
     # This seems like the wrong way to do it ...
     xbmc.Player().play(extended_url, list_item)
