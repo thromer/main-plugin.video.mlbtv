@@ -25,6 +25,7 @@
             - handle missing flags for postponements
             - added setting for auto selecting a stream (favorite/home)
             - added context menu item for choosing stream manually
+	    - list favorite team's game(s) first
         </news>
         <language>en</language>
         <platform>all</platform>
