@@ -1305,10 +1305,57 @@ def highlight_select_stream(json_source, catchup=None, from_context_menu=False):
     elif a == -1:
         sys.exit()
 
+def thromer_log(message):
+    xbmc.log('THROMER ' + message, level=xbmc.LOGDEBUG)
 
+class MyPlayer(xbmc.Player):
+    def __init__(self):
+        super().__init__()
+    def onPlaybackStopped(self):
+        thromer_log('stopped')
+    def onPlaybackPaused(self):
+        thromer_log('paused')
+    def onPlaybackEnded(self):
+        thromer_log('ended')
+    def onPlaybackStarted(self):
+        thromer_log('started')
+    
 def play_stream(stream_url, headers, description, title, icon=None, fanart=None, start='1', stream_type='video', music_type_unset=False):
+    thromer_log(f'play_stream {stream_url=}')
     listitem = stream_to_listitem(stream_url, headers, description, title, icon, fanart, start=start, stream_type=stream_type, music_type_unset=music_type_unset)
     xbmcplugin.setResolvedUrl(handle=addon_handle, succeeded=True, listitem=listitem)
+    thromer_log('did the set resolved url thing, are we all done?')
+
+    # maybe player goes out of scope in any case?
+    if False:
+        player = MyPlayer()
+        stream_start_tries =30
+        for i in range(50):
+            playing = ''
+            thromer_log(str(i))
+            try:
+                playing = player.getPlayingFile()
+                thromer_log(f'{playing=}')
+            except Exception as e:
+                thromer_log(f'getPlayingFile {str(e)}')
+                # ignoring
+            thromer_log(f'{playing=}')
+            if xbmc.getCondVisibility("Player.HasMedia") and playing != stream_url:
+                thromer_log('detected stream start')
+                try:
+                    total_stream_time = player.getTotalTime()
+                    thromer_log(' total stream time ' + str(timedelta(seconds=total_stream_time)))
+                except Exception as e:
+                    thromer_log(f'getTotalTime {str(e)}')
+                break # i guess
+            else:
+                thromer_log(" waiting for stream to start")
+                stream_start_tries -= 1
+                if stream_start_tries < 1:
+                    thromer_log( " stopping due to stream not starting")
+                    break
+                time.sleep(1)
+        thromer_log('oh well')
 
 
 def get_highlights(items):
@@ -1512,9 +1559,6 @@ def get_current_inning(game):
             current_inning = int(game['linescore']['currentInning'])
     return current_inning
 
-
-def thromer_log(message):
-    xbmc.log('THROMER ' + message, level=xbmc.LOGINFO)
 
 def live_fav_game():
     # TODO do we need to defend against confusion due to returning here
