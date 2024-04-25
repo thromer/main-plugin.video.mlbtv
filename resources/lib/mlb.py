@@ -1305,57 +1305,10 @@ def highlight_select_stream(json_source, catchup=None, from_context_menu=False):
     elif a == -1:
         sys.exit()
 
-def thromer_log(message):
-    xbmc.log('THROMER ' + message, level=xbmc.LOGDEBUG)
 
-class MyPlayer(xbmc.Player):
-    def __init__(self):
-        super().__init__()
-    def onPlaybackStopped(self):
-        thromer_log('stopped')
-    def onPlaybackPaused(self):
-        thromer_log('paused')
-    def onPlaybackEnded(self):
-        thromer_log('ended')
-    def onPlaybackStarted(self):
-        thromer_log('started')
-    
 def play_stream(stream_url, headers, description, title, icon=None, fanart=None, start='1', stream_type='video', music_type_unset=False):
-    thromer_log(f'play_stream {stream_url=}')
     listitem = stream_to_listitem(stream_url, headers, description, title, icon, fanart, start=start, stream_type=stream_type, music_type_unset=music_type_unset)
     xbmcplugin.setResolvedUrl(handle=addon_handle, succeeded=True, listitem=listitem)
-    thromer_log('did the set resolved url thing, are we all done?')
-
-    # maybe player goes out of scope in any case?
-    if False:
-        player = MyPlayer()
-        stream_start_tries =30
-        for i in range(50):
-            playing = ''
-            thromer_log(str(i))
-            try:
-                playing = player.getPlayingFile()
-                thromer_log(f'{playing=}')
-            except Exception as e:
-                thromer_log(f'getPlayingFile {str(e)}')
-                # ignoring
-            thromer_log(f'{playing=}')
-            if xbmc.getCondVisibility("Player.HasMedia") and playing != stream_url:
-                thromer_log('detected stream start')
-                try:
-                    total_stream_time = player.getTotalTime()
-                    thromer_log(' total stream time ' + str(timedelta(seconds=total_stream_time)))
-                except Exception as e:
-                    thromer_log(f'getTotalTime {str(e)}')
-                break # i guess
-            else:
-                thromer_log(" waiting for stream to start")
-                stream_start_tries -= 1
-                if stream_start_tries < 1:
-                    thromer_log( " stopping due to stream not starting")
-                    break
-                time.sleep(1)
-        thromer_log('oh well')
 
 
 def get_highlights(items):
@@ -1561,44 +1514,34 @@ def get_current_inning(game):
 
 
 def live_fav_game():
-    # TODO do we need to defend against confusion due to returning here
-    # within 5 minutes of finding a live game?
-
     game_day = localToEastern()
 
-    # TODO TODO TODO!
     auto_play_game_date = str(settings.getSetting(id='auto_play_game_date'))
-    # thromer_log(f'ignoring {auto_play_game_date=} !')
-    # settings.setSetting(id='auto_play_game_date', value='')
-    # auto_play_game_date = str(settings.getSetting(id='auto_play_game_date'))
 
+    # Defaults
     game_pk = None
+    message = None
 
     fav_team_id = getFavTeamId()
 
     # don't check if don't have a fav team id or if we've already flagged today's fav games as complete
-    thromer_log(f'{fav_team_id=} {auto_play_game_date=} {game_day=}')
     if fav_team_id is not None and auto_play_game_date != game_day:
         now = datetime.now()
         # don't check if it is before the stored next game time (if available)
         auto_play_next_game = str(settings.getSetting(id='auto_play_next_game'))
-        thromer_log(f'{auto_play_next_game=} {now=}')
-        local_parsed_next = None
-        if auto_play_next_game:
-            local_parsed_next = UTCToLocal(parse(auto_play_next_game))
-            thromer_log(f'parsed local auto_play_next_game {local_parsed_next}')
-        if auto_play_next_game == '' or local_parsed_next <= now:
-            # don't check more often than 5 minute intervals
+        auto_play_next_local = None if not auto_play_next_game else UTCToLocal(parse(auto_play_next_game))
+        if auto_play_next_local and now < auto_play_next_local:
+            message = f'{FAV_TEAM} game starts at {auto_play_next_local.strftime("%l:%M %p").strip()}'
+        else:
+            # use result from last check if it is less than 5 minutes old
             auto_play_game_checked = str(settings.getSetting(id='auto_play_game_checked'))
-            thromer_log(f'loaded {auto_play_game_checked=}')
-            need_refresh = not auto_play_game_checked or (parse(auto_play_game_checked) + timedelta(minutes=5)) < now
-            thromer_log(f'{need_refresh=}')
-            # if not need_refresh:
-            #     saved_game_pk = settings.getSetting(id='auto_play_game_pk')
-            #     thromer_log(f'loaded {saved_game_pk=}')
-            # if saved_game_pk:
-            #     game_pk = saved_game_pk
-            if need_refresh:
+            if bool(auto_play_game_checked) and now < (parse(auto_play_game_checked) + timedelta(minutes=5)):
+                game_pk = str(settings.getSetting(id='auto_play_game_pk'))
+                if not game_pk:
+                    cached_message = str(settings.getSetting(id='auto_play_message'))
+                    if cached_message:
+                        message = cached_message
+            else:
                 settings.setSetting(id='auto_play_game_checked', value=str(now))
 
                 url = API_URL + '/api/v1/schedule'
@@ -1609,9 +1552,7 @@ def live_fav_game():
                 headers = {
                     'User-Agent': UA_ANDROID
                 }
-                # https://statsapi.mlb.com/api/v1/schedule/?hydrate=game(content(media(epg))),team&sportId=1,51&date=04/14/2024
                 r = requests.get(url,headers=headers, verify=VERIFY)
-                thromer_log(f'{url=} {headers=}')
                 json_source = r.json()
 
                 upcoming_game = False
@@ -1624,7 +1565,6 @@ def live_fav_game():
                             # only check games that include our fav team
                             if fav_team_id in [str(game['teams']['home']['team']['id']), str(game['teams']['away']['team']['id'])]:
                                 # only check games that aren't final
-                                thromer_log(f'abstractGameState {game["status"]["abstractGameState"]}')
                                 if game['status']['abstractGameState'] != 'Final':
                                     # only check games that aren't blacked out
                                     if get_blackout_status(game, regional_fox_games_exist)[0] == 'False':
@@ -1636,46 +1576,33 @@ def live_fav_game():
                                                         upcoming_game = 'TBD'
                                                     else:
                                                         upcoming_game = parse(game['gameDate']) - timedelta(minutes=10)
-                                                    thromer_log(f'skipping -- {epg["mediaState"]=} {upcoming_game=}')
                                                 # if media is on, that means it is live
                                                 elif game_pk is None and epg['mediaState'] == 'MEDIA_ON':
                                                     game_pk = str(game['gamePk'])
                                                     xbmc.log('Found live fav game ' + game_pk)
-                                                    thromer_log(f'Found live fav game {game_pk=}')
                                                     break
-                                                else:
-                                                    thromer_log(f'skipped either not-none {game_pk=} or {epg["mediaState"]=} != MEDIA_ON')
-                                        else:
-                                            thromer_log(f"skipping for reasons I don't understand, probably because there is no media")
-                                    else:
-                                        thromer_log(f'skipping, blacked out')
-                                else:
-                                    thromer_log(f'skipping, final')
-                        except Exception as e:
-                            thromer_log(f'ignoring exception {e}')
+                        except:
                             pass
 
+                if game_pk:
+                    # Save game_pk in case auto-play is called again within 5 minutes
+                    settings.setSetting(id='auto_play_game_pk', value=game_pk)
                 # set the date setting if there are no more upcoming fav games today
-                # sadly if we leave autoplay on, we can never exit the plugin,
-                # because when we stop the stream it ships us right back here.
-                # if game_pk is None and upcoming_game is False:
-                if upcoming_game is False:
+                elif upcoming_game is False:
                     xbmc.log('No more upcoming fav games today')
-                    thromer_log(f'so sad, giving up on autoplay for today {game_day=} {upcoming_game=}')
                     settings.setSetting(id='auto_play_game_date', value=game_day)
+                    message = f'{FAV_TEAM} has no more live games today'
                 # otherwise store the time of the next game, and delay further checks until then
-                elif game_pk is None and upcoming_game != 'TBD':
+                elif upcoming_game != 'TBD':
                     xbmc.log('Setting next game time')
-                    local_parsed_next = UTCToLocal(parse(upcoming_game))
-                    thromer_log(f'deferring auto-play until {str(upcoming_game)=} -- locally {local_parsed_next}')
                     settings.setSetting(id='auto_play_next_game', value=str(upcoming_game))
-            else:
-                thromer_log('Too early to check')
+                    message = f'{FAV_TEAM} game starts at {UTCToLocal(upcoming_game).strftime("%l:%M %p").strip()}'
+                else:
+                    message = f'{FAV_TEAM} game start time is TBD'
+
+    if not game_pk:
+        if not message:
+            message = f'No live stream found for {FAV_TEAM}'
         else:
-            thromer_log(f'skipping, {auto_play_next_game}, {local_parsed_next}, {now}')
-
-    if game_pk:
-        thromer_log(f'Stashing auto_play_game_pk={game_pk}')
-        settings.setSetting(id='auto_play_game_pk', value=game_pk)
-
-    return game_pk
+            settings.setSetting(id='auto_play_message', value=message)
+    return (game_pk, message)
