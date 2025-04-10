@@ -1518,9 +1518,10 @@ def live_fav_game():
                 settings.setSetting(id='auto_play_game_checked', value=str(now))
 
                 url = API_URL + '/api/v1/schedule'
-                url += '?hydrate=game(content(media(epg))),team,broadcasts(all)'
+                url += '?hydrate=broadcasts'
                 url += '&sportId=1,51'
                 url += '&date=' + game_day
+                url += '&teamId=' + fav_team_id
 
                 headers = {
                     'User-Agent': UA_PC
