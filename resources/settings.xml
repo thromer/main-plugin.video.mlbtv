@@ -52,6 +52,8 @@
     <setting id="auto_play_game_date" type="text" label="" default="" visible="false"/>
     <setting id="auto_play_next_game" type="text" label="" default="" visible="false"/>
     <setting id="auto_play_game_checked" type="text" label="" default="" visible="false"/>
+
+    <setting id="thr_timing_start" type="text" label="" default="0.0" visible="false"/>
   </category>
 </settings>
 

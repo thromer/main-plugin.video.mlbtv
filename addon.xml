@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.mlbtv" name="MLB.TV®" version="2025.4.8+matrix.1" provider-name="eracknaphobia, tonywagner">
+<addon id="plugin.video.mlbtv" name="MLB.TV®" version="2026.4.8+matrix.1" provider-name="eracknaphobia, tonywagner"> <!-- DO NOT SUBMIT -->
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.pytz" />
@@ -39,5 +39,9 @@
             <icon>icon.png</icon>
             <fanart>fanart.jpg</fanart>
         </assets>
+	<!--  this makes development painful to impossible because it doesn't notice secret setting changes via pushing settings.xml
+	     also it seems really slow -->
+	<-- <reuselanguageinvoker>true</reuselanguageinvoker> 
+	-->
     </extension>
 </addon>

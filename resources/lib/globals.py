@@ -1,3 +1,6 @@
+from kodi_six import xbmc
+xbmc.log("THROMER globals.py start", level=xbmc.LOGINFO)
+
 # coding=utf-8
 import sys, re, os, time
 import calendar, pytz
@@ -5,7 +8,7 @@ import urllib, requests
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
 import json
-from kodi_six import xbmc, xbmcvfs, xbmcplugin, xbmcgui, xbmcaddon
+from kodi_six import xbmcvfs, xbmcplugin, xbmcgui, xbmcaddon
 import random
 from collections import namedtuple, deque
 
@@ -23,6 +26,7 @@ except AttributeError:
 
 addon_handle = int(sys.argv[1])
 
+xbmc.log("THROMER globals.py after imports", level=xbmc.LOGINFO)
 
 #Addon Info
 ADDON = xbmcaddon.Addon()
@@ -35,6 +39,7 @@ ROOTDIR = ADDON.getAddonInfo('path')
 
 #Settings
 settings = xbmcaddon.Addon(id='plugin.video.mlbtv')
+xbmc.log("THROMER globals.py after create settings obj", level=xbmc.LOGINFO)
 USERNAME = str(settings.getSetting(id="username"))
 PASSWORD = str(settings.getSetting(id="password"))
 OLD_USERNAME = str(settings.getSetting(id="old_username"))
@@ -56,6 +61,8 @@ ASK_TO_SKIP = str(settings.getSetting(id='ask_to_skip'))
 AUTO_PLAY_FAV = str(settings.getSetting(id='auto_play_fav'))
 ONLY_FREE_GAMES = str(settings.getSetting(id="only_free_games"))
 GAME_CHANGER_DELAY = int(settings.getSetting(id="game_changer_delay"))
+
+xbmc.log("THROMER globals.py after all settings", level=xbmc.LOGINFO)
 
 #Colors
 SCORE_COLOR = 'FF00B7EB'
@@ -97,6 +104,28 @@ MLB_TEAM_IDS = '108,109,110,111,112,113,114,115,116,117,118,119,120,121,133,134,
 AFFILIATE_TEAM_IDS = {"Arizona Diamondbacks": "419,516,2310,5368", "Athletics": "237,400,499,524", "Atlanta Braves": "431,432,478,6325", "Baltimore Orioles": "418,488,548,568", "Boston Red Sox": "414,428,533,546", "Chicago Cubs": "451,521,550,553", "Chicago White Sox": "247,487,494,580", "Cincinnati Reds": "416,450,459,498", "Cleveland Guardians": "402,437,445,481", "Colorado Rockies": "259,342,486,538", "Detroit Tigers": "106,512,570,582", "Houston Astros": "482,573,3712,5434", "Kansas City Royals": "541,565,1350,3705", "Los Angeles Angels": "401,460,559,561", "Los Angeles Dodgers": "238,260,456,526", "Miami Marlins": "479,554,564,4124", "Milwaukee Brewers": "249,556,572,5015", "Minnesota Twins": "492,509,1960,3898", "New York Mets": "453,505,507,552", "New York Yankees": "531,537,587,1956", "Philadelphia Phillies": "427,522,566,1410", "Pittsburgh Pirates": "452,477,484,3390", "San Diego Padres": "103,510,584,4904", "San Francisco Giants": "105,461,476,3410", "Seattle Mariners": "403,515,529,574", "St. Louis Cardinals": "235,279,440,443", "Tampa Bay Rays": "233,234,421,2498", "Texas Rangers": "102,448,540,6324", "Toronto Blue Jays": "422,424,435,463", "Washington Nationals": "426,436,534,547"}
 
 ESPN_SUNDAY_NIGHT_BLACKOUT_COUNTRIES = ["Angola", "Anguilla", "Antigua and Barbuda", "Argentina", "Aruba", "Australia", "Bahamas", "Barbados", "Belize", "Belize", "Benin", "Bermuda", "Bolivia", "Bonaire", "Botswana", "Brazil", "British Virgin Islands", "Burkina Faso", "Burundi", "Cameroon", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "Colombia", "Comoros", "Cook Islands", "Costa Rica", "Cote d'Ivoire", "Curacao", "Democratic Republic of the Congo", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "El Salvador", "England", "Equatorial Guinea", "Eritrea", "Eswatini", "Ethiopia", "Falkland Islands", "Falkland Islands", "Fiji", "French Guiana", "French Guiana", "French Polynesia", "Gabon", "Ghana", "Grenada", "Guadeloupe", "Guatemala", "Guinea", "Guinea Bissau", "Guyana", "Guyana", "Haiti", "Honduras", "Ireland", "Jamaica", "Kenya", "Kiribati", "Lesotho", "Liberia", "Madagascar", "Malawi", "Mali", "Marshall Islands", "Martinique", "Mayotte", "Mexico", "Micronesia", "Montserrat", "Mozambique", "Namibia", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Northern Ireland", "Palau Islands", "Panama", "Paraguay", "Peru", "Republic of Ireland", "Reunion", "Rwanda", "Saba", "Saint Maarten", "Samoa", "Sao Tome & Principe", "Scotland", "Senegal", "Seychelles", "Sierra Leone", "Solomon Islands", "Somalia", "South Africa", "St. Barthelemy", "St. Eustatius", "St. Kitts and Nevis", "St. Lucia", "St. Martin", "St. Vincent and the Grenadines", "Sudan", "Surinam", "Suriname", "Tahiti", "Tanzania & Zanzibar", "The Gambia", "The Republic of Congo", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Uruguay", "Venezuela", "Wales", "Zambia", "Zimbabwe"]
+
+
+THR_TIMING_START=float('NaN')
+
+
+def thrlog(msg, level=xbmc.LOGINFO):
+    global THR_TIMING_START
+    xbmc.log(f"THROMER {time.time()-THR_TIMING_START:.2f} {msg}", level=xbmc.LOGINFO)
+
+
+def thr_reset_timing_start():
+    global THR_TIMING_START
+    THR_TIMING_START = time.time()
+    settings.setSetting(id='thr_timing_start', value=str(THR_TIMING_START))
+    thrlog(f"wrote {THR_TIMING_START=}")
+
+
+THR_TIMING_START = float(settings.getSetting(id='thr_timing_start'))
+thrlog(f"read {THR_TIMING_START=}")
+if not THR_TIMING_START:
+    thr_reset_timing_start()
+
 
 def find(source,start_str,end_str):
     start = source.find(start_str)
@@ -510,6 +539,7 @@ def get_broadcast_start_timestamp(stream_url):
              'Origin': 'https://www.mlb.com',
              'Referer': 'https://www.mlb.com/'
         }
+        thrlog(f"get_broadcast_start_timestamp requests.get {url=}")
         r = requests.get(url, headers=headers, verify=VERIFY)
         content = r.text
         line_array = content.splitlines()
@@ -540,6 +570,7 @@ def get_blackout_teams(zip_code):
                 'Referer': 'https://www.mlb.com/'
             }
             # set verify to False here to avoid a Python request error "unable to get local issuer certificate"
+            thrlog(f"get_blackout_teams requests.get {url=}")
             r = requests.get(url, headers=headers, verify=False)
             json_source = r.json()
             if 'teams' in json_source:
@@ -566,3 +597,4 @@ settings.setSetting(id='blackout_teams', value=json.dumps(BLACKOUT_TEAMS))
 settings.setSetting(id='old_zip_code', value=ZIP_CODE)
 settings.setSetting(id='old_country', value=COUNTRY)
 
+xbmc.log("THROMER globals.py end", level=xbmc.LOGINFO)

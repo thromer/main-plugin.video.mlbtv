@@ -1,3 +1,6 @@
+from kodi_six import xbmc
+xbmc.log("THROMER account.py start", level=xbmc.LOGINFO)
+
 import requests
 from resources.lib.utils import Util
 from resources.lib.globals import *
@@ -49,8 +52,10 @@ class Account:
             payload = ('grant_type=password&username=%s&password=%s&scope=openid offline_access'
                        '&client_id=0oa3e1nutA1HLzAKG356') % (quote(self.username),
                                                              quote(self.password))
-
+            thrlog(f"login requests.post {url=}")
             r = requests.post(url, headers=headers, data=payload, verify=self.verify)
+            thrlog("received")
+
             if r.ok:
                 login_token = r.json()['access_token']
                 login_token_expiry = datetime.now() + timedelta(seconds=int(r.json()['expires_in']))
@@ -156,7 +161,9 @@ class Account:
             }
         }
         xbmc.log(str(data))
+        thrlog(f"get_playback requests.post {self.media_url=}")
         r = requests.post(self.media_url, headers=headers, json=data, verify=VERIFY)
+        thrlog("received")
         xbmc.log(r.text)
         #r = requests.get(url, headers=headers, cookies=self.util.load_cookies(), verify=self.verify)
         if not r.ok:
@@ -221,7 +228,9 @@ class Account:
             }
         }
 
+        thrlog(f"get_device_session_id requests.post {self.media_url=}")
         r = requests.post(self.media_url, headers=headers, json=data)
+        thrlog("received")
         device_id = r.json()['data']['initSession']['deviceId']
         session_id = r.json()['data']['initSession']['sessionId']
         entitlements = []
@@ -240,7 +249,10 @@ class Account:
     def get_broadcast_start_time(self, stream_url):
         try:
             variant_url = stream_url.replace('.m3u8', '_5600K.m3u8')
+            thrlog(f"get_broadcast_start_time requests.get {variant_url=}")
             r = requests.get(variant_url, headers={'User-Agent': UA_PC}, verify=self.verify)
+            thrlog("received")
+            
             content = r.text
         
             line_array = content.splitlines()
@@ -278,7 +290,9 @@ class Account:
             'Origin': 'https://www.mlb.com',
             'Referer': 'https://www.mlb.com'
         }
+        thrlog(f"get_event_stream requests.get {url=}")
         r = requests.get(url, headers=headers, verify=VERIFY)
+        thrlog("received")
 
         text_source = r.text
         #xbmc.log(text_source)
@@ -369,7 +383,10 @@ class Account:
             }
         }
         xbmc.log(str(data))
+        thrlog(f"get_linear_stream requests.post {url=}")
         r = requests.post(url, headers=headers, json=data, verify=VERIFY)
+        thrlog("received")
+        
         xbmc.log(r.text)
         if not r.ok:
             dialog = xbmcgui.Dialog()
@@ -387,3 +404,6 @@ class Account:
                 return stream_url
             except:
                 pass
+
+xbmc.log("THROMER account.py end", level=xbmc.LOGINFO)
+

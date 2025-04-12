@@ -1,3 +1,4 @@
+xbmc.log("THROMER enter main.py", level=xbmc.LOGINFO)
 from resources.lib.mlb import *
 
 params = get_params()
@@ -71,15 +72,25 @@ if 'teams' in params:
 if 'gamechanger' in params:
     gamechanger = urllib.unquote_plus(params["gamechanger"])
 
+# dont_end_directory = False
+thrlog(f"{mode=}")
 # default addon home screen
 if mode is None:
+    thr_reset_timing_start()
+    live_game = None
     # autoplay fav team, if that setting is enabled and a live broadcast is in progress
+    thrlog(f"main {AUTO_PLAY_FAV=} {FAV_TEAM=}")
     if AUTO_PLAY_FAV == 'true' and FAV_TEAM != 'None':
         live_game = live_fav_game()
+        thrlog(f"main {live_game=}")
         if live_game is not None:
             xbmc.log('Auto-playing live game ' + str(live_game))
+            thrlog('Auto-playing live game ' + str(live_game))
             xbmc.executebuiltin('PlayMedia("plugin://plugin.video.mlbtv/?mode=102&game_pk='+str(live_game)+'")')
             xbmcplugin.endOfDirectory(addon_handle)
+            # Can't simply replace the previous two lines with stream_select alone.:
+            # stream_select(str(live_game), spoiler, suspended, start_inning, blackout, description, name, icon, fanart, autoplay=True, gamechanger=gamechanger)
+            # dont_end_directory = True
     # if no autoplay, show the main options
     categories()
 
@@ -189,9 +200,13 @@ elif mode == 999:
 
 # don't cache today's games or addon home screen
 if mode == 100 or (mode is None and AUTO_PLAY_FAV == 'true' and FAV_TEAM != 'None'):
+    thrlog("no cache endOfDirectory")
     xbmcplugin.endOfDirectory(addon_handle, cacheToDisc=False)
 # also don't cache previous/next days
 elif mode == 101:
+    thrlog("prev/next endOfDirectory")
     xbmcplugin.endOfDirectory(addon_handle, cacheToDisc=False, updateListing=True)
 else:
+#elif not dont_end_directory:
+    thrlog("general endOfDirectory")
     xbmcplugin.endOfDirectory(addon_handle)

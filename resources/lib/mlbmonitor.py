@@ -1,3 +1,6 @@
+from kodi_six import xbmc
+xbmc.log("THROMER mlbmonitor.py start", level=xbmc.LOGINFO)
+
 # coding=UTF-8
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Original plugin.video.mlbbasesloaded © jakecar
@@ -1044,6 +1047,7 @@ class MLBMonitor(xbmc.Monitor):
             'Accept-Encoding': 'gzip, deflate, br',
             'Content-type': 'application/json'
         }
+        thrlog(f"get_gameday_data requests.get {url=}")
         r = requests.get(url, headers=headers, verify=self.verify)
         json_source = r.json()
         return json_source
@@ -1059,6 +1063,7 @@ class MLBMonitor(xbmc.Monitor):
             'Accept-Encoding': 'gzip, deflate, br',
             'Content-type': 'application/json'
         }
+        thrlog(f"get_gameday_data requests.get {stream_url=}")
         r = requests.get(stream_url, headers=headers, verify=self.verify)
         text_source = r.text
         line_array = text_source.splitlines()
@@ -1423,6 +1428,7 @@ class MLBMonitor(xbmc.Monitor):
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip, deflate, br'
         }
+        thrlog(f"get_best_games requests.get {url=}")
         r = requests.get(url,headers=headers, verify=VERIFY)
         json_source = r.json()
         #xbmc.log('Change monitor ' + self.mlb_monitor_started + ' json source : ' + json.dumps(json_source))
@@ -1676,3 +1682,5 @@ class MLBMonitor(xbmc.Monitor):
 
     def set_break_expiry(self, game_pk, now):
         self.break_expiries[game_pk] = now + timedelta(seconds=109)
+
+xbmc.log("THROMER mlbmonitor.py end", level=xbmc.LOGINFO)

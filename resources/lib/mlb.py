@@ -1,3 +1,5 @@
+from kodi_six import xbmc
+xbmc.log("THROMER mlb.py start", level=xbmc.LOGINFO)
 from resources.lib.globals import *
 
 def categories():
@@ -61,8 +63,11 @@ def todays_games(game_day, start_inning='False', sport=MLB_ID, teams='None'):
         'User-Agent': UA_ANDROID
     }
     xbmc.log(url)
+    thrlog(f"todays_games requests.get {url=}", level=xbmc.LOGINFO)
     r = requests.get(url,headers=headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
+    # thrlog(f"todays_games {json_source=}", level=xbmc.LOGINFO)
 
     games = []
     if 'dates' in json_source and len(json_source['dates']) > 0 and 'games' in json_source['dates'][0]:
@@ -142,6 +147,7 @@ def todays_games(game_day, start_inning='False', sport=MLB_ID, teams='None'):
 
 
 def create_game_listitem(game, game_day, start_inning, today, nonentitlement_data):
+    thrlog(f"create_game_listitem {game=}")
     game_pk = game['gamePk']
     xbmc.log(str(game_pk))
 
@@ -456,7 +462,9 @@ def get_video_list(list_url=None):
         'Referer': 'https://www.mlb.com',
         'Content-Type': 'application/json'
     }
+    thrlog(f"get_video_list requests.get {list_url=}")
     r = requests.get(list_url, headers=headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
     return json_source
 
@@ -600,6 +608,7 @@ def create_big_inning_listitem(game_day):
                 'user-agent': UA_PC
             }
             r = requests.get(url,headers=headers, verify=VERIFY)
+            thrlog("received")
             #xbmc.log(r.text)
 
             # parse the response
@@ -685,14 +694,18 @@ def create_game_changer_listitem(blackouts, inprogress_exists, game_changer_star
 
 
 def stream_select(game_pk, spoiler='True', suspended='False', start_inning='False', blackout='False', description=None, name=None, icon=None, fanart=None, from_context_menu=False, autoplay=False, overlay_check='False', gamechanger='False'):
+    thrlog(f"stream_select {game_pk=}")
     # fetch the epg content using the game_pk
     #url = f'{API_URL}/api/v1/schedule?gamePk={game_pk}&hydrate=team,linescore,xrefId,flags,review,broadcasts(all),,seriesStatus(useOverride=true),statusFlags,story&sortBy=gameDate,gameStatus,gameType'
     url = f'{API_URL}/api/v1/schedule?gamePk={game_pk}&hydrate=broadcasts(all),game(content(highlights(highlights)))'        
     headers = {
         'User-Agent': UA_PC
     }
+    thrlog(f"stream_select requests.get {url=}", level=xbmc.LOGINFO)
     r = requests.get(url, headers=headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
+    # thrlog(f"stream_select {json_source=}", level=xbmc.LOGINFO)
     # start with just video content, assumed to be at index 0
     #epg = json_source['media']['epg'][0]['items']
     #epg = json_source['dates'][0]['games'][0]['broadcasts']
@@ -1206,7 +1219,9 @@ def list_highlights(game_pk, icon, fanart):
     headers = {
         'User-Agent': UA_ANDROID
     }
+    thrlog(f"list_highlights requests.get {url=}")
     r = requests.get(url, headers=headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
 
     if 'highlights' in json_source and 'highlights' in json_source['highlights'] and 'items' in json_source['highlights']['highlights'] and len(json_source['highlights']['highlights']['items']) > 0:
@@ -1249,6 +1264,7 @@ def play_all_highlights_for_game(game_pk, fanart):
         'User-Agent': UA_ANDROID
     }
     r = requests.get(url, headers=headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
 
     if 'highlights' in json_source and 'highlights' in json_source['highlights'] and 'items' in json_source['highlights']['highlights'] and len(json_source['highlights']['highlights']['items']) > 0:
@@ -1319,6 +1335,7 @@ def highlight_select_stream(json_source, catchup=None, from_context_menu=False):
 
 
 def play_stream(stream_url, headers, description, title, icon=None, fanart=None, start='1', stream_type='video', music_type_unset=False):
+    thrlog(f"play_stream {stream_url=}")
     listitem = stream_to_listitem(stream_url, headers, description, title, icon, fanart, start=start, stream_type=stream_type, music_type_unset=music_type_unset)
     xbmcplugin.setResolvedUrl(handle=addon_handle, succeeded=True, listitem=listitem)
 
@@ -1367,6 +1384,7 @@ def playAllHighlights(stream_date):
         'User-Agent': UA_ANDROID
     }
     r = requests.get(url, headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
 
     playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -1420,7 +1438,9 @@ def get_airings_data(content_id=None, game_pk=None):
         data = {
             'variables': '{%22partnerProgramIds%22%3A[%22' + str(game_pk) + '%22]}'
         }
+    thrlog(f"get_airings_data requests.get {url=}")
     r = requests.get(url, headers=headers, params=data, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
 
     return json_source
@@ -1456,8 +1476,12 @@ def get_nonentitlement_data(game_date):
     if login_token is not None and okta_id is not None:
         headers['authorization'] = 'Bearer ' + login_token
         headers['x-okta-id'] = okta_id
+        thrlog(f"nonentitlement {login_token=} {okta_id=}")
+    thrlog(f"nonentitlement requests.get {url=}")
     r = requests.get(url,headers=headers, verify=VERIFY)
+    thrlog("received")
     json_source = r.json()
+    # thrlog(f"nonentitlement {json_source=}")
 
     games = []
     if 'results' in json_source and len(json_source['results']) > 0:
@@ -1474,7 +1498,7 @@ def get_nonentitlement_data(game_date):
                 gameDurationMinutes += blackout_wait_minutes
                 blackout_time = firstPitch + timedelta(minutes=gameDurationMinutes)
                 nonentitlement_data[game['gamePk']] = blackout_time
-                            
+    thrlog("timing: exit get_nonentitlement_data")
     return nonentitlement_data
 
 
@@ -1498,6 +1522,7 @@ def get_current_inning(game):
 
 
 def live_fav_game():
+    thrlog("enter live_fav_game")
     game_day = localToEastern()
 
     auto_play_game_date = str(settings.getSetting(id='auto_play_game_date'))
@@ -1507,13 +1532,16 @@ def live_fav_game():
     fav_team_id = getFavTeamId()
 
     # don't check if don't have a fav team id or if we've already flagged today's fav games as complete
+    thrlog(f"live_fav_game {fav_team_id=} {auto_play_game_date=} {game_day=}")
     if fav_team_id is not None and auto_play_game_date != game_day:
         now = datetime.now()
         # don't check if it is before the stored next game time (if available)
         auto_play_next_game = str(settings.getSetting(id='auto_play_next_game'))
+        thrlog(f"{now=} parsed auto_play_next_game={UTCToLocal(parse(auto_play_next_game)) if auto_play_next_game else ''}", level=xbmc.LOGINFO)
         if auto_play_next_game == '' or UTCToLocal(parse(auto_play_next_game)) <= now:
             # don't check more often than 5 minute intervals
             auto_play_game_checked = str(settings.getSetting(id='auto_play_game_checked'))
+            thrlog(f"{auto_play_game_checked=}", level=xbmc.LOGINFO)
             if auto_play_game_checked == '' or (parse(auto_play_game_checked) + timedelta(minutes=5)) < now:
                 settings.setSetting(id='auto_play_game_checked', value=str(now))
 
@@ -1526,17 +1554,22 @@ def live_fav_game():
                 headers = {
                     'User-Agent': UA_PC
                 }
+                thrlog(f"live_fav_game requests.get {url=}", level=xbmc.LOGINFO)
                 r = requests.get(url,headers=headers, verify=VERIFY)
+                thrlog("received")
                 json_source = r.json()
+                # thrlog(f"live_fav_game {json_source=}", level=xbmc.LOGINFO)
 
                 upcoming_game = False
 
+                thrlog(f"want team id {fav_team_id=}", level=xbmc.LOGINFO)
                 if 'dates' in json_source and len(json_source['dates']) > 0 and 'games' in json_source['dates'][0]:
                     games = json_source['dates'][0]['games']
-                    nonentitlement_data = get_nonentitlement_data(game_day)
+                    nonentitlement_data = get_nonentitlement_data(game_day)  # We could save a tiny amount of time and space by only asking for fav_team_id
+                    # thrlog(f"{nonentitlement_data=}")
                     found = False
                     for game in games:
-                        try:
+                        if True: # try:
                             # only check games that include our fav team
                             if fav_team_id in [str(game['teams']['home']['team']['id']), str(game['teams']['away']['team']['id'])]:
                                 # only check games that aren't final
@@ -1553,26 +1586,32 @@ def live_fav_game():
                                                         upcoming_game = 'TBD'
                                                     else:
                                                         upcoming_game = parse(game['gameDate']) - timedelta(minutes=10)
+                                                    thrlog(f"{upcoming_game=}", level=xbmc.LOGINFO)
                                                     found = True
                                                 # if media is on, that means it is live
                                                 elif game_pk is None and mediaStateCode == 'MEDIA_ON':
                                                     game_pk = str(game['gamePk'])
                                                     xbmc.log('Found live fav game ' + game_pk)
+                                                    thrlog('Found live fav game ' + game_pk, level=xbmc.LOGINFO)
                                                     found = True
                                             if found:
                                                 break  # broadcast loop
                             if found:
                                 break  # game loop
-                        except:
-                            pass
+                        # except:
+                        #     thrlog(f"exception?!", level=xbmc.LOGINFO)
+                        #     pass
 
                 # set the date setting if there are no more upcoming fav games today
                 if upcoming_game is False:
                     xbmc.log('No more upcoming fav games today')
+                    thrlog(f'No more upcoming fav games today setting auto_play_game_date={game_day}', level=xbmc.LOGINFO)
                     settings.setSetting(id='auto_play_game_date', value=game_day)
                 # otherwise store the time of the next game, and delay further checks until then
                 elif game_pk is None and upcoming_game != 'TBD':
                     xbmc.log('Setting next game time')
+                    thrlog(f'Setting next game time auto_play_next_game={upcoming_game}', level=xbmc.LOGINFO)
                     settings.setSetting(id='auto_play_next_game', value=str(upcoming_game))
 
     return game_pk
+xbmc.log("THROMER mlb.py end", level=xbmc.LOGINFO)

@@ -1,3 +1,6 @@
+from kodi_six import xbmc
+xbmc.log("THROMER utils.py start", level=xbmc.LOGINFO)
+
 import os, re, sys
 from kodi_six import xbmc, xbmcvfs, xbmcaddon
 
@@ -76,3 +79,5 @@ class Util:
     def delete_cookies(self):
         if os.path.isfile(os.path.join(self.addon_path, 'cookies.lwp')):
             os.remove(os.path.join(self.addon_path, 'cookies.lwp'))
+
+xbmc.log("THROMER utils.py end", level=xbmc.LOGINFO)
