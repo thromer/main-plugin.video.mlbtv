@@ -149,6 +149,8 @@ Run!
 
 ## Android
 
+**probably want --enable-debug=no**
+
 https://developer.android.com/studio#command-line-tools-only
 
 Also https://forum.kodi.tv/showthread.php?tid=378649&pid=3208198#pid3208198
