@@ -843,7 +843,7 @@ class MLBMonitor(xbmc.Monitor):
     def onSettingsChanged(self):
         xbmc.log("MLB Monitor detected settings changed")
         if self.mlb_monitor_started != '':
-            settings = xbmcaddon.Addon(id='plugin.video.mlbtv')
+            settings = xbmcaddon.Addon(id='plugin.video.mlbtv-ted')
             new_mlb_monitor_started = str(settings.getSetting(id="mlb_monitor_started"))
             if new_mlb_monitor_started != '' and self.mlb_monitor_started != new_mlb_monitor_started:
                 xbmc.log("MLB Monitor from " + self.mlb_monitor_started + " closing due to another monitor starting on " + new_mlb_monitor_started)
@@ -1081,7 +1081,7 @@ class MLBMonitor(xbmc.Monitor):
 
         json_source = self.get_gameday_data(game_pk, monitor_name)
 
-        settings = xbmcaddon.Addon(id='plugin.video.mlbtv')
+        settings = xbmcaddon.Addon(id='plugin.video.mlbtv-ted')
 
         # calculate total skip time (for fun)
         total_skip_time = 0
@@ -1376,8 +1376,8 @@ class MLBMonitor(xbmc.Monitor):
                                 self.mlb_monitor_file = self.get_playing_file(player)
                             except:
                                 pass
-                            #xbmc.Player().play('plugin://plugin.video.mlbtv/?mode=102&game_pk='+game['state'].game_pk+u_params)
-                            xbmc.executebuiltin('PlayMedia("plugin://plugin.video.mlbtv/?mode=102&game_pk='+game['state'].game_pk+u_params+'")')
+                            #xbmc.Player().play('plugin://plugin.video.mlbtv-ted/?mode=102&game_pk='+game['state'].game_pk+u_params)
+                            xbmc.executebuiltin('PlayMedia("plugin://plugin.video.mlbtv-ted/?mode=102&game_pk='+game['state'].game_pk+u_params+'")')
                             xbmcplugin.endOfDirectory(addon_handle)
                             # wait for stream start before proceeding
                             if self.wait_for_stream(game['state'].game_pk) is True:

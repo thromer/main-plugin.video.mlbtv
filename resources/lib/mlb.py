@@ -3,6 +3,7 @@ xbmc.log("THROMER mlb.py start", level=xbmc.LOGINFO)
 from resources.lib.globals import *
 
 def categories():
+    thrlog("enter categories")
     addDir(LOCAL_STRING(30360), 100, ICON, FANART)
     addDir(LOCAL_STRING(30361), 105, ICON, FANART)
     # see yesterday's scores at inning in the main menu
@@ -12,6 +13,7 @@ def categories():
     addDir(LOCAL_STRING(30426), 109, ICON, FANART)
     # show Featured Videos in the main menu
     addDir(LOCAL_STRING(30363), 300, ICON, FANART)
+    thrlog("exit categories")
 
 def minor_league_categories():
     addDir(LOCAL_STRING(30429), 110, ICON, FANART)
@@ -26,6 +28,7 @@ def affiliate_menu():
 
 
 def todays_games(game_day, start_inning='False', sport=MLB_ID, teams='None'):
+    thrlog(f"enter todays_games {game_day=}")
     today = localToEastern()
     if game_day is None:
         game_day = today
@@ -67,11 +70,12 @@ def todays_games(game_day, start_inning='False', sport=MLB_ID, teams='None'):
     r = requests.get(url,headers=headers, verify=VERIFY)
     thrlog("received")
     json_source = r.json()
-    # thrlog(f"todays_games {json_source=}", level=xbmc.LOGINFO)
+    # thrlog(f"todays_games {json_source=}", level=xbmc.LOGINFO)  # Very loud!
 
     games = []
     if 'dates' in json_source and len(json_source['dates']) > 0 and 'games' in json_source['dates'][0]:
         games = json_source['dates'][0]['games']
+    # thrlog(f"{len(games)=}")
 
     favorite_games = []
     remaining_games = []
@@ -103,11 +107,13 @@ def todays_games(game_day, start_inning='False', sport=MLB_ID, teams='None'):
             if not inprogress_exists and game['status']['detailedState'] == 'In Progress':
                 inprogress_exists = True
 
+    # thrlog(f"{len(favorite_games)=} {len(remaining_games)=}")
+
     try:
         for game in favorite_games:
             create_game_listitem(game, game_day, start_inning, today, nonentitlement_data)
-    except:
-        pass
+    except Exception as e:
+        xbmc.log(f"mlb:todays_games caught {e}", level=xbmc.LOGERROR)
 
     # Big Inning and game changer only available for non-free accounts (and not in minor league lists)
     if ONLY_FREE_GAMES != 'true' and sport == MLB_ID:
@@ -139,16 +145,17 @@ def todays_games(game_day, start_inning='False', sport=MLB_ID, teams='None'):
     try:
         for game in remaining_games:
             create_game_listitem(game, game_day, start_inning, today, nonentitlement_data)
-    except:
-        pass
+    except Exception as e:
+        xbmc.log(f"mlb:todays_games caught {e}", level=xbmc.LOGERROR)
 
     next_day = display_day + timedelta(days=1)
     addDir('[B]%s >>[/B]' % LOCAL_STRING(30011), 101, NEXT_ICON, FANART, next_day.strftime("%Y-%m-%d"), start_inning, sport, teams)
+    thrlog("exit todays_games")
 
 
 def create_game_listitem(game, game_day, start_inning, today, nonentitlement_data):
-    thrlog(f"create_game_listitem {game=}")
     game_pk = game['gamePk']
+    # thrlog(f"create_game_listitem {game_pk=}")
     xbmc.log(str(game_pk))
 
     milb = None
@@ -163,6 +170,7 @@ def create_game_listitem(game, game_day, start_inning, today, nonentitlement_dat
                     milb_broadcast = broadcast
                     break
         if milb_broadcast is None:
+            # thrlog(f"create_game_listitem early exit")
             return
 
         milb = 'True'
@@ -445,6 +453,7 @@ def create_game_listitem(game, game_day, start_inning, today, nonentitlement_dat
     info = {'plot': desc, 'tvshowtitle': 'MLB', 'title': title, 'originaltitle': title, 'aired': game_day, 'genre': LOCAL_STRING(700), 'mediatype': 'video'}
 
     # If set only show free games in the list
+    # thrlog(f"create_game_listitem {game_pk=} maybe calling add_stream")
     if ONLY_FREE_GAMES == 'true' and not is_free:
         return
     add_stream(name, title, desc, game_pk, icon, fanart, info, video_info, audio_info, stream_date, spoiler, suspended, start_inning, blackout, milb)
@@ -1523,26 +1532,30 @@ def get_current_inning(game):
 
 def live_fav_game():
     thrlog("enter live_fav_game")
-    game_day = localToEastern()
+    game_day = "2025-04-12" if THR_HACK else localToEastern()
 
     auto_play_game_date = str(settings.getSetting(id='auto_play_game_date'))
+    if THR_HACK:
+        auto_play_game_date = "2025-04-11" 
 
     game_pk = None
 
     fav_team_id = getFavTeamId()
 
     # don't check if don't have a fav team id or if we've already flagged today's fav games as complete
-    thrlog(f"live_fav_game {fav_team_id=} {auto_play_game_date=} {game_day=}")
+    thrlog(f"live_fav_game {THR_HACK=} {fav_team_id=} {auto_play_game_date=} {game_day=}")
     if fav_team_id is not None and auto_play_game_date != game_day:
         now = datetime.now()
         # don't check if it is before the stored next game time (if available)
         auto_play_next_game = str(settings.getSetting(id='auto_play_next_game'))
+        if THR_HACK:
+            auto_play_next_game = '2025-04-11 23:28:22.300023'
         thrlog(f"{now=} parsed auto_play_next_game={UTCToLocal(parse(auto_play_next_game)) if auto_play_next_game else ''}", level=xbmc.LOGINFO)
         if auto_play_next_game == '' or UTCToLocal(parse(auto_play_next_game)) <= now:
             # don't check more often than 5 minute intervals
             auto_play_game_checked = str(settings.getSetting(id='auto_play_game_checked'))
             thrlog(f"{auto_play_game_checked=}", level=xbmc.LOGINFO)
-            if auto_play_game_checked == '' or (parse(auto_play_game_checked) + timedelta(minutes=5)) < now:
+            if auto_play_game_checked == '' or (parse(auto_play_game_checked) + timedelta(minutes=5)) < now or THR_HACK:
                 settings.setSetting(id='auto_play_game_checked', value=str(now))
 
                 url = API_URL + '/api/v1/schedule'
@@ -1573,12 +1586,13 @@ def live_fav_game():
                             # only check games that include our fav team
                             if fav_team_id in [str(game['teams']['home']['team']['id']), str(game['teams']['away']['team']['id'])]:
                                 # only check games that aren't final
-                                if game['status']['abstractGameState'] != 'Final':
+                                if game['status']['abstractGameState'] != 'Final' or THR_HACK:
                                     # only check games that are entitled and not blacked out
                                     if str(game['gamePk']) not in nonentitlement_data:
                                         mediaStateCode = None
                                         for broadcast in game.get('broadcasts', []):
                                             mediaStateCode = broadcast.get('mediaState', {}).get('mediaStateCode', '')
+                                            thrlog(f"{mediaStateCode=}")
                                             if mediaStateCode:
                                                 # if media is off, assume it is still upcoming
                                                 if mediaStateCode == 'MEDIA_OFF':
@@ -1594,6 +1608,9 @@ def live_fav_game():
                                                     xbmc.log('Found live fav game ' + game_pk)
                                                     thrlog('Found live fav game ' + game_pk, level=xbmc.LOGINFO)
                                                     found = True
+                                                elif game_pk is None and THR_HACK:
+                                                    game_pk = "778341" if THR_HACK else str(game['gamePk'])
+                                                    thrlog(f"fake found game {game_pk=}")
                                             if found:
                                                 break  # broadcast loop
                             if found:

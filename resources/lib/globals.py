@@ -1,3 +1,4 @@
+THR_HACK=True
 from kodi_six import xbmc
 xbmc.log("THROMER globals.py start", level=xbmc.LOGINFO)
 
@@ -38,7 +39,7 @@ LOCAL_STRING = ADDON.getLocalizedString
 ROOTDIR = ADDON.getAddonInfo('path')
 
 #Settings
-settings = xbmcaddon.Addon(id='plugin.video.mlbtv')
+settings = xbmcaddon.Addon(id='plugin.video.mlbtv-ted')
 xbmc.log("THROMER globals.py after create settings obj", level=xbmc.LOGINFO)
 USERNAME = str(settings.getSetting(id="username"))
 PASSWORD = str(settings.getSetting(id="password"))
@@ -258,9 +259,11 @@ def add_stream(name, title, desc, game_pk, icon=None, fanart=None, info=None, vi
 
     # add Choose Stream and Highlights as context menu items
     if milb is None:
-        liz.addContextMenuItems([(LOCAL_STRING(30390), 'PlayMedia(plugin://plugin.video.mlbtv/?mode='+str(103)+u_params+art_params+')'), (LOCAL_STRING(30391), 'Container.Update(plugin://plugin.video.mlbtv/?mode='+str(106)+'&name='+urllib.quote_plus(title)+'&game_pk='+urllib.quote_plus(str(game_pk))+art_params+')')])
+        liz.addContextMenuItems([(LOCAL_STRING(30390), 'PlayMedia(plugin://plugin.video.mlbtv-ted/?mode='+str(103)+u_params+art_params+')'), (LOCAL_STRING(30391), 'Container.Update(plugin://plugin.video.mlbtv-ted/?mode='+str(106)+'&name='+urllib.quote_plus(title)+'&game_pk='+urllib.quote_plus(str(game_pk))+art_params+')')])
 
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
+    # THROMER this looks strange; at least, it is a strange place to do it. Also as of v18 we can do 'games' though not sure if they mean
+    # sporting events ...
     xbmcplugin.setContent(addon_handle, 'episodes')
     
     return ok

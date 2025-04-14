@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.mlbtv" name="MLB.TV®" version="2026.4.8+matrix.1" provider-name="eracknaphobia, tonywagner"> <!-- DO NOT SUBMIT -->
+<addon id="plugin.video.mlbtv-ted" name="MLB.TV® Ted" version="2026.4.8+matrix.1" provider-name="eracknaphobia, tonywagner"> <!-- DO NOT SUBMIT -->
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
+	<import addon="script.module.hello" version="1.0.0"/>
         <import addon="script.module.pytz" />
-        <import addon="script.module.beautifulsoup4" />
+        <!-- <import addon="script.module.beautifulsoup4" /> -->
         <import addon="script.module.requests" />
-        <import addon="inputstream.adaptive"/>
+	<import addon="inputstream.adaptive" optional="true"/> <!-- DO NOT SUBMIT -->
         <import addon="script.module.kodi-six" />
         <import addon="script.module.dateutil" />
     </requires>
@@ -41,7 +42,7 @@
         </assets>
 	<!--  this makes development painful to impossible because it doesn't notice secret setting changes via pushing settings.xml
 	     also it seems really slow -->
-	<-- <reuselanguageinvoker>true</reuselanguageinvoker> 
+	<!-- <reuselanguageinvoker>true</reuselanguageinvoker> 
 	-->
     </extension>
 </addon>
