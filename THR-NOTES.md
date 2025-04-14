@@ -160,7 +160,7 @@ yes | sdkmanager --licenses
 sdkmanager platform-tools
 sdkmanager "platforms;android-35"
 sdkmanager "build-tools;34.0.0"
-sdkmanager "ndk;27.2.12479018"
+sdkmanager "ndk;21.4.7075529"
 keytool -genkey -keystore ~/.android/debug.keystore -v -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" -keypass android -storepass android -keyalg RSA -keysize 2048 -validity 10000
 
 sudo apt install -y autoconf bison build-essential curl default-jdk flex gawk git gperf lib32stdc++6 lib32z1 lib32z1-dev libcurl4-openssl-dev unzip zip zlib1g-dev
@@ -175,7 +175,7 @@ cd ~/kodi/tools/depends/
 Haven't gotten this working ...
 
 ```
-./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=x86_64-linux-android --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/27.2.12479018
+./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=x86_64-linux-android --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/21.4.7075529
 # make -j$(getconf _NPROCESSORS_ONLN) -C tools/depends/target/binary-addons ADDONS="inputstream.adaptive"
 ```
 
@@ -187,7 +187,7 @@ Haven't gotten this working ...
 * And `~/kodi/CMakeLists.txt` to comment out TagLib, or maybe we should have configured with `--enable_internal_taglib=off` or something
 
 ```
-./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/27.2.12479018 -with-sdk=32  # for Android 12. Later maybe we can do 34 for Android 14 ... doesn't seem like this really helped but you wouldn't expect it to hurt, either.
+./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/21.4.7075529 -with-sdk=32  # for Android 12. Later maybe we can do 34 for Android 14 ... doesn't seem like this really helped but you wouldn't expect it to hurt, either.
 make -j$(getconf _NPROCESSORS_ONLN)
 cd ~/kodi
 make -j$(getconf _NPROCESSORS_ONLN) -C tools/depends/target/binary-addons ADDONS="inputstream.adaptive"
