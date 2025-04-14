@@ -191,7 +191,10 @@ Haven't gotten this working ...
 make -j$(getconf _NPROCESSORS_ONLN)
 cd ~/kodi
 make -j$(getconf _NPROCESSORS_ONLN) -C tools/depends/target/binary-addons ADDONS="inputstream.adaptive"
-make -C tools/depends/target/cmakebuildsys
+mkdir $HOME/kodi-build-android-arm
+make -C tools/depends/target/cmakebuildsys BUILD_DIR=$HOME/kodi-build-android-arm
+cd $HOME/kodi-build-android-arm
+make -j$(getconf _NPROCESSORS_ONLN)
 make apk  # no target???
 ```
 
