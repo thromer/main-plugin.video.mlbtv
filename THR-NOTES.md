@@ -151,7 +151,9 @@ Run!
 
 https://developer.android.com/studio#command-line-tools-only
 
-Put it in ~/Android/Sdk/cmdline-tools/ AND move everything to latest
+Also https://forum.kodi.tv/showthread.php?tid=378649&pid=3208198#pid3208198
+
+Put it in ${ANDROID_HOME}/cmdline-tools/ AND move everything to latest
 
 ```
 yes | sdkmanager --licenses
@@ -178,14 +180,15 @@ Haven't gotten this working ...
 ```
 
 ### CCWGTV (arm)
-* Might need to hack up `${ANDROID_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h`
+* Might need to hack up `${ANDROID_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h` [along these lines](https://lists.gnutls.org/pipermail/gnutls-devel/2024-November/026453.html) -- just comment it all out
 * Definitely need to hack up `~/kodi/tools/depends/target/sqlite3/arm-linux-androideabi-21-debug/sqlite3.c` near line 36279 along [these lines](https://sqlite.org/src/info/f18b2524da6bbbcf)
 * And `~/kodi/tools/depends/target/samba-gplv3/arm-linux-androideabi-21-debug/lib/util/charset/iconv.c` to remove definition of swab around line 763
 * And `~/kodi/tools/depends/target/libcdio-gplv3/arm-linux-androideabi-21-debug/lib/driver/_cdio_stdio.c` to comment out lines 54, 55 so as not use fseeko
 * And `~/kodi/CMakeLists.txt` to comment out TagLib, or maybe we should have configured with `--enable_internal_taglib=off` or something
 
 ```
-./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/27.2.12479018 -with-sdk=32  # for Android 12. Later maybe we can do 34 for Android 14
+./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/27.2.12479018 -with-sdk=32  # for Android 12. Later maybe we can do 34 for Android 14 ... doesn't seem like this really helped but you wouldn't expect it to hurt, either.
+make -j$(getconf _NPROCESSORS_ONLN)
 cd ~/kodi
 make -j$(getconf _NPROCESSORS_ONLN) -C tools/depends/target/binary-addons ADDONS="inputstream.adaptive"
 make -C tools/depends/target/cmakebuildsys
@@ -204,3 +207,12 @@ cd commandlinetools
 mkdir latest
 mv * latest
 ```
+
+Maybe `ndk;23.2.8568313` will work better? Based on [this](ndk;23.2.8568313) and [ffmpeg-kit ndk compatibility](https://github.com/arthenica/ffmpeg-kit/wiki/NDK-Compatibility)
+
+Or even more likely `ndk;21.4.7075529` per the link at the top of this section. But that's even worse at least on neo.
+
+There's this but I don't know if it is canonical or what versions of stuff it uses ...
+
+And this looks better though it doesn't get updated? 
+https://github.com/xbmc/xbmc/tree/Omega/tools/buildsteps/android
