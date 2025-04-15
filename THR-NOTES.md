@@ -182,15 +182,16 @@ Haven't gotten this working ...
 ```
 
 ### CCWGTV (arm)
-* Might need to hack up `${ANDROID_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h` [along these lines](https://lists.gnutls.org/pipermail/gnutls-devel/2024-November/026453.html) -- just comment it all out
-* Definitely need to hack up `~/kodi/tools/depends/target/sqlite3/arm-linux-androideabi-21-debug/sqlite3.c` near line 36279 along [these lines](https://sqlite.org/src/info/f18b2524da6bbbcf)
-* And `~/kodi/tools/depends/target/samba-gplv3/arm-linux-androideabi-21-debug/lib/util/charset/iconv.c` to remove definition of swab around line 763
-* And `~/kodi/tools/depends/target/libcdio-gplv3/arm-linux-androideabi-21-debug/lib/driver/_cdio_stdio.c` to comment out lines 54, 55 so as not use fseeko
-* And `~/kodi/CMakeLists.txt` to comment out TagLib, or maybe we should have configured with `--enable_internal_taglib=off` or something
+* ~~Might need to hack up `${ANDROID_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/time.h` [along these lines](https://lists.gnutls.org/pipermail/gnutls-devel/2024-November/026453.html) -- just comment it all out~~
+* ~~Definitely need to hack up `~/kodi/tools/depends/target/sqlite3/arm-linux-androideabi-21-debug/sqlite3.c` near line 36279 along [these lines](https://sqlite.org/src/info/f18b2524da6bbbcf)~~
+* ~~And `~/kodi/tools/depends/target/samba-gplv3/arm-linux-androideabi-21-debug/lib/util/charset/iconv.c` to remove definition of swab around line 763~~
+* ~~And `~/kodi/tools/depends/target/libcdio-gplv3/arm-linux-androideabi-21-debug/lib/driver/_cdio_stdio.c` to comment out lines 54, 55 so as not use fseeko~~
+* ~~And `~/kodi/CMakeLists.txt` to comment out TagLib, or maybe we should have configured with `--enable_internal_taglib=off` or something~~
 
 ```
-./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/21.4.7075529 -with-sdk=32  # for Android 12. Later maybe we can do 34 for Android 14 ... doesn't seem like this really helped but you wouldn't expect it to hurt, either.
+./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --prefix=$HOME/android-tools/xbmc-depends --with-ndk-path=$ANDROID_HOME/ndk/21.4.7075529 -with-sdk=32 --enable-debug=off # or not # -with-sdk=32 is for Android 12. Later maybe we can do 34 for Android 14 ... doesn't seem like this really helped but you wouldn't expect it to hurt, either.
 make -j$(getconf _NPROCESSORS_ONLN)
+make -C target/taglib ???
 cd ~/kodi
 make -j$(getconf _NPROCESSORS_ONLN) -C tools/depends/target/binary-addons ADDONS="inputstream.adaptive"
 mkdir $HOME/kodi-build-android-arm
