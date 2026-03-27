@@ -6,12 +6,23 @@ import time, uuid
 import random
 import string
 import base64
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
 
 if sys.version_info[0] > 2:
     from urllib.parse import quote
 else:
     from urllib import quote
 
+class CustomCipherAdapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        context = create_urllib3_context()
+        context.set_ciphers("DEFAULT")
+        pool_kwargs["ssl_context"] = context
+        super().init_poolmanager(connections, maxsize, block=block, **pool_kwargs)
+
+custom_session = requests.Session()
+custom_session.mount("https://", CustomCipherAdapter())
 
 class Account:
     addon = xbmcaddon.Addon()
@@ -50,7 +61,7 @@ class Account:
                        '&client_id=0oa3e1nutA1HLzAKG356') % (quote(self.username),
                                                              quote(self.password))
 
-            r = requests.post(url, headers=headers, data=payload, verify=self.verify)
+            r = custom_session.post(url, headers=headers, data=payload, verify=True)
             if r.ok:
                 login_token = r.json()['access_token']
                 login_token_expiry = datetime.now() + timedelta(seconds=int(r.json()['expires_in']))
